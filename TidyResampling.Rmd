@@ -1,0 +1,162 @@
+---
+title: "Tidy Models Resampling"
+date: "2025-03-10"
+output: pdf_document
+---
+
+This is from [Tidy Models Resampling](https://www.tidymodels.org/start/resampling/#resampling).
+Follow along there for explanations. Note the modeling here is using random forest which we are not covering.
+
+```{r setup, include=FALSE}
+library(tidymodels) # for the rsample package, along with the rest of tidymodels
+
+# Helper packages
+library(modeldata)  # for the cells data
+```
+
+```{r}
+data(cells, package = "modeldata")
+cells
+```
+
+```{r}
+cells %>% 
+  count(class) %>% 
+  mutate(prop = n/sum(n))
+```
+
+```{r}
+set.seed(123)
+cell_split <- initial_split(cells %>% select(-case), 
+                            strata = class)
+```
+
+```{r}
+cell_train <- training(cell_split)
+cell_test  <- testing(cell_split)
+```
+
+
+```{r}
+nrow(cell_train)
+```
+
+
+```{r}
+nrow(cell_train)/nrow(cells)
+```
+
+
+```{r}
+# training set proportions by class
+cell_train %>% 
+  count(class) %>% 
+  mutate(prop = n/sum(n))
+```
+
+
+```{r}
+# test set proportions by class
+cell_test %>% 
+  count(class) %>% 
+  mutate(prop = n/sum(n))
+```
+
+```{r}
+rf_mod <- 
+  rand_forest(trees = 1000) %>% 
+  set_engine("ranger") %>% 
+  set_mode("classification")
+```
+
+```{r}
+library(ranger)
+set.seed(234)
+rf_fit <- 
+  rf_mod %>% 
+  fit(class ~ ., data = cell_train)
+rf_fit
+```
+
+```{r}
+rf_training_pred <- 
+  predict(rf_fit, cell_train) %>% 
+  bind_cols(predict(rf_fit, cell_train, type = "prob")) %>% 
+  # Add the true outcome data back in
+  bind_cols(cell_train %>% 
+              select(class))
+```
+
+```{r}
+rf_training_pred %>%                # training set predictions
+  roc_auc(truth = class, .pred_PS)
+```
+
+```{r}
+rf_training_pred %>%                # training set predictions
+  accuracy(truth = class, .pred_class)
+```
+
+```{r}
+rf_testing_pred <- 
+  predict(rf_fit, cell_test) %>% 
+  bind_cols(predict(rf_fit, cell_test, type = "prob")) %>% 
+  bind_cols(cell_test %>% select(class))
+```
+
+```{r}
+rf_testing_pred %>%                   # test set predictions
+  roc_auc(truth = class, .pred_PS)
+```
+
+
+```{r}
+rf_testing_pred %>%                   # test set predictions
+  accuracy(truth = class, .pred_class)
+```
+
+```{r}
+set.seed(345)
+folds <- vfold_cv(cell_train, v = 10)
+folds
+```
+
+```{r}
+rf_wf <- 
+  workflow() %>%
+  add_model(rf_mod) %>%
+  add_formula(class ~ .)
+```
+
+
+```{r}
+set.seed(456)
+rf_fit_rs <- 
+  rf_wf %>% 
+  fit_resamples(folds)
+```
+
+
+```{r}
+rf_fit_rs
+```
+
+```{r}
+collect_metrics(rf_fit_rs)
+```
+
+```{r}
+rf_testing_pred %>%                   # test set predictions
+  roc_auc(truth = class, .pred_PS)
+```
+
+
+```{r}
+rf_testing_pred %>%                   # test set predictions
+  accuracy(truth = class, .pred_class)
+```
+
+```{r}
+sessionInfo()
+```
+

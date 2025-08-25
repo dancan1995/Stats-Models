@@ -1,0 +1,467 @@
+---
+title: "Portfolio"
+author: "Author"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Portfolio
+
+## Libraries
+```{r Setup}
+library(readr)
+library(tidyverse)
+library(tidymodels)
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(glmnet)
+library(MASS)
+library(GGally)
+library(discrim)
+library(poissonreg)
+```
+
+[Source](https://www.kaggle.com/datasets/mathchi/diabetes-data-set?resource=download)
+
+## Import the data
+```{r}
+# Read in the dataset
+diabetes <- read_csv("C:/Users/danca/Downloads/diabetes.csv")
+
+# Preview the data
+glimpse(diabetes)
+
+# Convert 'Outcome' to a factor with labels
+diabetes <- diabetes %>%
+  mutate(
+    Outcome = factor(Outcome, levels = c(0, 1), labels = c("No Diabetes", "Diabetes"))
+  )
+
+# Check the levels for Outcome
+levels(diabetes$Outcome)
+
+# Check the levels for Pregnancies
+levels(diabetes$Pregnancies)
+
+# Frequency tables for better understanding
+table(diabetes$Outcome)
+table(diabetes$Pregnancies)
+```
+
+## Exploratory Analysis
+```{r}
+glimpse(diabetes)
+```
+
+
+### ggpairs
+```{r}
+ggpairs(diabetes)
+```
+
+
+```{r}
+summary(diabetes)
+```
+### Remove outliers ie 0 that appear in rows for the columns that cannot be 0
+```{r}
+# Remove rows where any of the columns Glucose, BloodPressure, SkinThickness, Insulin, or BMI have a value of 0
+diabetes <- diabetes %>%
+  filter(
+    Glucose != 0,
+    BloodPressure != 0,
+    SkinThickness != 0,
+    Insulin != 0,
+    BMI != 0
+  )
+
+# View the first few rows of the cleaned data
+head(diabetes)
+
+summary(diabetes)
+```
+
+
+### Split the data into training and testing sets (80-20 split)
+```{r}
+# Split data into training and testing sets
+diabetes_split <- initial_split(diabetes, prop = 0.8, strata = Outcome)
+diabetes_train <- training(diabetes_split)
+diabetes_test <- testing(diabetes_split)
+```
+
+
+## 1. Binary Logistic Regression (Outcome is binary)
+```{r}
+# Recipe
+log_recipe <- recipe(Outcome ~ ., data = diabetes_train)
+
+# Model spec
+log_spec <- logistic_reg() %>%
+  set_engine("glm") %>%
+  set_mode("classification")
+
+# Workflow
+log_wf <- workflow() %>%
+  add_recipe(log_recipe) %>%
+  add_model(log_spec)
+
+# Fit the model
+log_fit <- fit(log_wf, data = diabetes_train)
+
+# Evaluate
+predict(log_fit, diabetes_test, type = "prob") %>%
+  bind_cols(predict(log_fit, diabetes_test)) %>%
+  bind_cols(diabetes_test) %>%
+  metrics(truth = Outcome, estimate = .pred_class)
+```
+
+```{r}
+tidy(log_fit)
+```
+
+
+
+```{r}
+# Generate predictions with probabilities and classes
+log_preds <- predict(log_fit, diabetes_test, type = "prob") %>%
+  bind_cols(predict(log_fit, diabetes_test)) %>%
+  bind_cols(diabetes_test)
+
+# View a few prediction results
+head(log_preds)
+```
+
+```{r}
+log_preds <- log_preds %>%
+  mutate(residual = .pred_Diabetes - as.numeric(Outcome == "Diabetes"))
+
+# Plot residuals
+ggplot(log_preds, aes(x = .pred_Diabetes, y = residual)) +
+  geom_point(alpha = 0.6) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  labs(title = "Residual Plot",
+       x = "Predicted Probability (Diabetes)",
+       y = "Residual (Predicted - Actual)") +
+  theme_minimal()
+```
+
+
+### Confusion matrix
+```{r}
+log_preds %>%
+  conf_mat(truth = Outcome, estimate = .pred_class)
+```
+
+
+```{r}
+log_preds %>%
+  roc_curve(truth = Outcome, .pred_Diabetes) %>%
+  autoplot()
+
+log_preds %>%
+  roc_auc(truth = Outcome, .pred_Diabetes)
+```
+
+
+## 2. Multinomial Logistic Regression
+```{r}
+# Simulate a 3-class outcome
+set.seed(123)
+diabetes$Outcome3 <- factor(sample(c("Low", "Medium", "High"), nrow(diabetes), replace = TRUE))
+diabetes_multi_split <- initial_split(diabetes, prop = 0.8, strata = Outcome3)
+diabetes_multi_train <- training(diabetes_multi_split)
+diabetes_multi_test <- testing(diabetes_multi_split)
+
+# Recipe
+multi_recipe <- recipe(Outcome3 ~ Pregnancies + Glucose + BloodPressure + SkinThickness + 
+                       Insulin + BMI + DiabetesPedigreeFunction + Age, data = diabetes_multi_train)
+
+# Model spec
+multi_spec <- multinom_reg() %>%
+  set_engine("nnet") %>%
+  set_mode("classification")
+
+# Workflow
+multi_wf <- workflow() %>%
+  add_recipe(multi_recipe) %>%
+  add_model(multi_spec)
+
+# Fit
+multi_fit <- fit(multi_wf, data = diabetes_multi_train)
+
+# Evaluate
+predict(multi_fit, diabetes_multi_test) %>%
+  bind_cols(diabetes_multi_test) %>%
+  metrics(truth = Outcome3, estimate = .pred_class)
+```
+
+```{r}
+# Generate predictions with probabilities and classes
+multi_preds <- predict(multi_fit, diabetes_multi_test, type = "prob") %>%
+  bind_cols(predict(multi_fit, diabetes_multi_test)) %>%
+  bind_cols(diabetes_multi_test)
+
+# View predictions
+head(multi_preds)
+```
+
+```{r}
+multi_preds <- multi_preds %>%
+  mutate(residual = .pred_High - as.numeric(Outcome3 == "High"))
+
+# Plot residuals for class "High"
+ggplot(multi_preds, aes(x = .pred_High, y = residual)) +
+  geom_point(alpha = 0.6) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  labs(title = "Residual Plot (Class: High)",
+       x = "Predicted Probability (High)",
+       y = "Residual (Predicted - Actual)") +
+  theme_minimal()
+```
+
+### Confusion matrix
+```{r}
+multi_preds %>%
+  conf_mat(truth = Outcome3, estimate = .pred_class)
+```
+
+
+```{r}
+# Add binary columns for each class (one-vs-rest approach)
+multi_preds <- multi_preds %>%
+  mutate(
+    truth_Low = if_else(Outcome3 == "Low", "Low", "Other") %>% factor(levels = c("Other", "Low")),
+    truth_Medium = if_else(Outcome3 == "Medium", "Medium", "Other") %>% factor(levels = c("Other", "Medium")),
+    truth_High = if_else(Outcome3 == "High", "High", "Other") %>% factor(levels = c("Other", "High"))
+  )
+```
+
+
+```{r}
+# ROC for "Low"
+multi_preds %>%
+  roc_curve(truth = truth_Low, .pred_Low) %>%
+  autoplot() +
+  labs(title = "ROC Curve: Low vs Rest")
+
+# ROC for "Medium"
+multi_preds %>%
+  roc_curve(truth = truth_Medium, .pred_Medium) %>%
+  autoplot() +
+  labs(title = "ROC Curve: Medium vs Rest")
+
+# ROC for "High"
+multi_preds %>%
+  roc_curve(truth = truth_High, .pred_High) %>%
+  autoplot() +
+  labs(title = "ROC Curve: High vs Rest")
+```
+
+## 3. Linear Discriminant Analysis (LDA)
+```{r}
+lda_spec <- discrim_linear() %>%
+  set_engine("MASS") %>%
+  set_mode("classification")
+
+lda_wf <- workflow() %>%
+  add_recipe(log_recipe) %>%
+  add_model(lda_spec)
+
+lda_fit <- fit(lda_wf, data = diabetes_train)
+
+# Evaluate
+predict(lda_fit, diabetes_test) %>%
+  bind_cols(diabetes_test) %>%
+  metrics(truth = Outcome, estimate = .pred_class)
+```
+
+```{r}
+lda_preds <- predict(lda_fit, diabetes_test, type = "prob") %>%
+  bind_cols(predict(lda_fit, diabetes_test)) %>%
+  bind_cols(diabetes_test)
+
+head(lda_preds)
+```
+
+
+```{r}
+lda_preds <- lda_preds %>%
+  mutate(residual = .pred_Diabetes - as.numeric(Outcome == "Diabetes"))
+
+ggplot(lda_preds, aes(x = .pred_Diabetes, y = residual)) +
+  geom_point(alpha = 0.6) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  labs(title = "LDA Residual Plot",
+       x = "Predicted Probability (Diabetes)",
+       y = "Residual") +
+  theme_minimal()
+```
+
+### Confusion matrix
+```{r}
+lda_preds %>%
+  conf_mat(truth = Outcome, estimate = .pred_class)
+```
+
+```{r}
+lda_preds %>%
+  roc_curve(truth = Outcome, .pred_Diabetes) %>%
+  autoplot()
+
+lda_preds %>%
+  roc_auc(truth = Outcome, .pred_Diabetes)
+```
+
+
+```{r}
+lda_preds %>%
+  metrics(truth = Outcome, estimate = .pred_class)
+
+lda_preds %>%
+  yardstick::precision(truth = Outcome, estimate = .pred_class)
+
+lda_preds %>%
+  yardstick::recall(truth = Outcome, estimate = .pred_class)
+
+lda_preds %>%
+  yardstick::f_meas(truth = Outcome, estimate = .pred_class)
+```
+
+## 4. Poisson Regression (predict count outcome: Pregnancies)
+```{r}
+poisson_recipe <- recipe(Glucose ~ Pregnancies + BloodPressure + SkinThickness + 
+                         Insulin + BMI + DiabetesPedigreeFunction + Age, data = diabetes_train)
+
+poisson_spec <- poisson_reg() %>%
+  set_engine("glm") %>%
+  set_mode("regression")
+
+poisson_wf <- workflow() %>%
+  add_recipe(poisson_recipe) %>%
+  add_model(poisson_spec)
+
+poisson_fit <- fit(poisson_wf, data = diabetes_train)
+
+# Evaluate
+predict(poisson_fit, diabetes_test) %>%
+  bind_cols(diabetes_test) %>%
+  metrics(truth = Pregnancies, estimate = .pred)
+```
+
+```{r}
+poisson_preds <- predict(poisson_fit, diabetes_test) %>%
+  bind_cols(diabetes_test)
+
+poisson_preds
+```
+
+```{r}
+poisson_preds <- poisson_preds %>%
+  mutate(residual = Pregnancies - .pred)
+
+ggplot(poisson_preds, aes(x = .pred, y = residual)) +
+  geom_point(alpha = 0.6) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
+  labs(title = "Residual Plot for Poisson Regression",
+       x = "Predicted Glucose",
+       y = "Residual (Observed - Predicted)") +
+  theme_minimal()
+```
+
+
+```{r}
+poisson_preds %>% rmse(truth = Pregnancies, estimate = .pred)
+poisson_preds %>% mae(truth = Pregnancies, estimate = .pred)
+poisson_preds %>% rsq(truth = Pregnancies, estimate = .pred)
+```
+
+
+```{r}
+ggplot(poisson_preds, aes(x = Glucose, y = .pred)) +
+  geom_point(alpha = 0.6) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "blue") +
+  labs(title = "Observed vs Predicted Counts",
+       x = "Actual Glucose",
+       y = "Predicted Glucose") +
+  theme_minimal()
+```
+
+
+```{r}
+poisson_model <- extract_fit_engine(poisson_fit)
+summary(poisson_model)
+
+# You can also compute dispersion:
+dispersion <- sum(residuals(poisson_model, type = "pearson")^2) / poisson_model$df.residual
+dispersion  
+```
+
+## 5. Polynomial Regression (e.g., predict Glucose using polynomial of Age)
+```{r}
+# Create the recipe using step_poly for Age
+poly_recipe <- recipe(Glucose ~ Pregnancies + BloodPressure + SkinThickness + 
+                         Insulin + BMI + DiabetesPedigreeFunction + Age, data = diabetes_train) %>%
+  step_poly(Age, degree = 3)
+
+# Specify a linear regression model
+lm_spec <- linear_reg() %>%
+  set_engine("lm")
+
+# Build the workflow
+lm_wf <- workflow() %>%
+  add_recipe(poly_recipe) %>%
+  add_model(lm_spec)
+
+# Fit the model
+lm_fit <- fit(lm_wf, data = diabetes_train)
+
+# Predict and evaluate on the test set
+predict(lm_fit, diabetes_test) %>%
+  bind_cols(diabetes_test) %>%
+  metrics(truth = Glucose, estimate = .pred)
+```
+
+```{r}
+poly_preds <- predict(lm_fit, diabetes_test) %>%
+  bind_cols(diabetes_test)
+
+poly_preds
+```
+
+```{r}
+poly_preds <- poly_preds %>%
+  mutate(residual = Glucose - .pred)
+
+ggplot(poly_preds, aes(x = .pred, y = residual)) +
+  geom_point(alpha = 0.6) +
+  geom_hline(yintercept = 0, color = "red", linetype = "dashed") +
+  labs(title = "Residual Plot (Polynomial Regression)",
+       x = "Predicted Glucose",
+       y = "Residual (Observed - Predicted)") +
+  theme_minimal()
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

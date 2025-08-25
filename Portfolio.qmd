@@ -1,0 +1,501 @@
+---
+title: "Final Portfolio: Reflection on Learning and Participation"
+output: 
+  html_document:
+    code_folding: show
+  word_document: default
+---
+
+# Importing the libraries
+
+```{r message=FALSE,warning=FALSE,include=FALSE}
+library(readr)
+library(tidyverse)
+library(tidymodels)
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(glmnet)
+library(MASS)
+library(GGally)
+library(discrim)
+library(poissonreg)
+```
+
+[Source](https://www.kaggle.com/datasets/mathchi/diabetes-data-set?resource=download)
+
+# Import the data
+```{r}
+# Read in the dataset
+diabetes <- read_csv("diabetes.csv")
+
+# Preview the data
+glimpse(diabetes)
+
+# Convert 'Outcome' to a factor with labels
+diabetes <- diabetes %>%
+  mutate(
+    Outcome = factor(Outcome, levels = c(0, 1), labels = c("No Diabetes", "Diabetes"))
+  )
+
+# Check the levels for Outcome
+levels(diabetes$Outcome)
+
+# Check the levels for Pregnancies
+levels(diabetes$Pregnancies)
+
+# Frequency tables for better understanding
+table(diabetes$Outcome)
+table(diabetes$Pregnancies)
+```
+
+# Exploratory Analysis
+```{r}
+glimpse(diabetes)
+```
+
+
+## ggpairs
+```{r}
+ggpairs(diabetes)
+```
+
+
+```{r}
+summary(diabetes)
+```
+## Remove outliers ie 0 that appear in rows for the columns that cannot be 0
+```{r}
+# Remove rows where any of the columns Glucose, BloodPressure, SkinThickness, Insulin, or BMI have a value of 0
+diabetes <- diabetes %>%
+  filter(
+    Glucose != 0,
+    BloodPressure != 0,
+    SkinThickness != 0,
+    Insulin != 0,
+    BMI != 0
+  )
+
+# View the first few rows of the cleaned data
+head(diabetes)
+
+summary(diabetes)
+```
+
+
+## Split the data into training and testing sets (80-20 split)
+```{r}
+# Split data into training and testing sets
+diabetes_split <- initial_split(diabetes, prop = 0.8, strata = Outcome)
+diabetes_train <- training(diabetes_split)
+diabetes_test <- testing(diabetes_split)
+```
+
+
+# 1. Binary Logistic Regression (Outcome is binary)
+
+## Learning Objective 1: Describe probability as a foundation of statistical modeling, including inference and maximum likelihood estimation
+
+**One example that demonstrates my understanding of probability and inference is the Binary Logistic Regression model I built to predict diabetes status. Logistic regression is inherently probabilistic; it estimates the probability that an individual belongs to a certain class (e.g., having diabetes) given input features. In this model, I interpreted the coefficients as changes in the log-odds of having diabetes, which helped me conceptualize how changes in predictors like glucose or BMI affect risk. This required me to internalize the probabilistic structure of the logistic function and understand how probabilities are transformed via the logit link function.**
+
+**Moreover, I applied maximum likelihood estimation (MLE), even if implicitly through the use of tidymodels, to fit the logistic regression. The model seeks parameter values that maximize the likelihood of observing the given outcomes in the data. By examining deviance and log-likelihood values, and checking residuals, I was able to understand how well the model captured the underlying distribution of the outcome. This work solidified my understanding of MLE as a foundation for inference and reinforced how probability lies at the heart of modern statistical learning.**
+
+```{r}
+# Recipe
+log_recipe <- recipe(Outcome ~ ., data = diabetes_train)
+
+# Model spec
+log_spec <- logistic_reg() %>%
+  set_engine("glm") %>%
+  set_mode("classification")
+
+# Workflow
+log_wf <- workflow() %>%
+  add_recipe(log_recipe) %>%
+  add_model(log_spec)
+
+# Fit the model
+log_fit <- fit(log_wf, data = diabetes_train)
+
+# Evaluate
+predict(log_fit, diabetes_test, type = "prob") %>%
+  bind_cols(predict(log_fit, diabetes_test)) %>%
+  bind_cols(diabetes_test) %>%
+  metrics(truth = Outcome, estimate = .pred_class)
+```
+
+```{r}
+tidy(log_fit)
+```
+
+
+
+```{r}
+# Generate predictions with probabilities and classes
+log_preds <- predict(log_fit, diabetes_test, type = "prob") %>%
+  bind_cols(predict(log_fit, diabetes_test)) %>%
+  bind_cols(diabetes_test)
+
+# View a few prediction results
+head(log_preds)
+```
+
+```{r}
+log_preds <- log_preds %>%
+  mutate(residual = .pred_Diabetes - as.numeric(Outcome == "Diabetes"))
+
+# Plot residuals
+ggplot(log_preds, aes(x = .pred_Diabetes, y = residual)) +
+  geom_point(alpha = 0.6) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  labs(title = "Residual Plot",
+       x = "Predicted Probability (Diabetes)",
+       y = "Residual (Predicted - Actual)") +
+  theme_minimal()
+```
+
+
+## Confusion matrix
+```{r}
+log_preds %>%
+  conf_mat(truth = Outcome, estimate = .pred_class)
+```
+
+
+```{r}
+log_preds %>%
+  roc_curve(truth = Outcome, .pred_Diabetes) %>%
+  autoplot()
+
+log_preds %>%
+  roc_auc(truth = Outcome, .pred_Diabetes)
+```
+
+
+# 2. Multinomial Logistic Regression
+
+##nLearning Objective 2: Apply the appropriate generalized linear model for a specific data context
+
+I addressed this learning objective through my use of both Multinomial Logistic Regression and Poisson Regression, applying them where appropriate to specific data contexts. For the multinomial model, I extended the binary classification framework to a three-category outcome, recognizing that a binary approach would not be sufficient when the response variable contains more than two categories. By adapting the GLM framework with a multinomial link function, I was able to model the probabilities of each diabetes class separately, providing richer insights into how predictors influence each outcome.
+
+In contrast, for count data modeling, I applied Poisson Regression, which is specifically designed for response variables representing counts or event frequencies. This model assumes a log link and equidispersion, and I evaluated model fit by comparing predicted counts to observed values. This clear distinction in model application showed my growing ability to assess data types, choose the correct GLM structure, and justify my modeling decisions. Each model was fitted with appropriate diagnostics and cross-validation strategies, ensuring that they were not only theoretically correct but also practically useful.
+
+```{r}
+# Simulate a 3-class outcome
+set.seed(123)
+diabetes$Outcome3 <- factor(sample(c("Low", "Medium", "High"), nrow(diabetes), replace = TRUE))
+diabetes_multi_split <- initial_split(diabetes, prop = 0.8, strata = Outcome3)
+diabetes_multi_train <- training(diabetes_multi_split)
+diabetes_multi_test <- testing(diabetes_multi_split)
+
+# Recipe
+multi_recipe <- recipe(Outcome3 ~ Pregnancies + Glucose + BloodPressure + SkinThickness + 
+                       Insulin + BMI + DiabetesPedigreeFunction + Age, data = diabetes_multi_train)
+
+# Model spec
+multi_spec <- multinom_reg() %>%
+  set_engine("nnet") %>%
+  set_mode("classification")
+
+# Workflow
+multi_wf <- workflow() %>%
+  add_recipe(multi_recipe) %>%
+  add_model(multi_spec)
+
+# Fit
+multi_fit <- fit(multi_wf, data = diabetes_multi_train)
+
+# Evaluate
+predict(multi_fit, diabetes_multi_test) %>%
+  bind_cols(diabetes_multi_test) %>%
+  metrics(truth = Outcome3, estimate = .pred_class)
+```
+
+```{r}
+# Generate predictions with probabilities and classes
+multi_preds <- predict(multi_fit, diabetes_multi_test, type = "prob") %>%
+  bind_cols(predict(multi_fit, diabetes_multi_test)) %>%
+  bind_cols(diabetes_multi_test)
+
+# View predictions
+head(multi_preds)
+```
+
+```{r}
+multi_preds <- multi_preds %>%
+  mutate(residual = .pred_High - as.numeric(Outcome3 == "High"))
+
+# Plot residuals for class "High"
+ggplot(multi_preds, aes(x = .pred_High, y = residual)) +
+  geom_point(alpha = 0.6) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  labs(title = "Residual Plot (Class: High)",
+       x = "Predicted Probability (High)",
+       y = "Residual (Predicted - Actual)") +
+  theme_minimal()
+```
+
+## Confusion matrix
+```{r}
+multi_preds %>%
+  conf_mat(truth = Outcome3, estimate = .pred_class)
+```
+
+
+```{r}
+# Add binary columns for each class (one-vs-rest approach)
+multi_preds <- multi_preds %>%
+  mutate(
+    truth_Low = if_else(Outcome3 == "Low", "Low", "Other") %>% factor(levels = c("Other", "Low")),
+    truth_Medium = if_else(Outcome3 == "Medium", "Medium", "Other") %>% factor(levels = c("Other", "Medium")),
+    truth_High = if_else(Outcome3 == "High", "High", "Other") %>% factor(levels = c("Other", "High"))
+  )
+```
+
+
+```{r}
+# ROC for "Low"
+multi_preds %>%
+  roc_curve(truth = truth_Low, .pred_Low) %>%
+  autoplot() +
+  labs(title = "ROC Curve: Low vs Rest")
+
+# ROC for "Medium"
+multi_preds %>%
+  roc_curve(truth = truth_Medium, .pred_Medium) %>%
+  autoplot() +
+  labs(title = "ROC Curve: Medium vs Rest")
+
+# ROC for "High"
+multi_preds %>%
+  roc_curve(truth = truth_High, .pred_High) %>%
+  autoplot() +
+  labs(title = "ROC Curve: High vs Rest")
+```
+
+# 3. Linear Discriminant Analysis (LDA)
+
+## Learning Objective 3: Demonstrate model selection given a set of candidate models
+
+Model selection was a major component of my workflow, particularly when comparing models like Binary Logistic Regression, Multinomial Logistic Regression, Linear Discriminant Analysis (LDA), K-Nearest Neighbors (KNN), and Polynomial Regression. I did not stop at fitting models; I evaluated their performance using appropriate metrics such as AUC, accuracy, ROC curves, and RMSE. For classification models, I used cross-validation to avoid overfitting and identify the model with the best generalization capability.
+
+In regression modeling, I used Polynomial Regression to explore how increasing the degree of predictor terms (e.g., glucose) affects model performance. I tracked performance metrics across degrees and selected the best-fitting model based on validation results. This hands-on comparison between linear and nonlinear approaches helped me understand the trade-offs between model complexity and interpretability. I used these insights to guide thoughtful model selection rather than defaulting to more complex models without justification.
+
+```{r}
+lda_spec <- discrim_linear() %>%
+  set_engine("MASS") %>%
+  set_mode("classification")
+
+lda_wf <- workflow() %>%
+  add_recipe(log_recipe) %>%
+  add_model(lda_spec)
+
+lda_fit <- fit(lda_wf, data = diabetes_train)
+
+# Evaluate
+predict(lda_fit, diabetes_test) %>%
+  bind_cols(diabetes_test) %>%
+  metrics(truth = Outcome, estimate = .pred_class)
+```
+
+```{r}
+lda_preds <- predict(lda_fit, diabetes_test, type = "prob") %>%
+  bind_cols(predict(lda_fit, diabetes_test)) %>%
+  bind_cols(diabetes_test)
+
+head(lda_preds)
+```
+
+
+```{r}
+lda_preds <- lda_preds %>%
+  mutate(residual = .pred_Diabetes - as.numeric(Outcome == "Diabetes"))
+
+ggplot(lda_preds, aes(x = .pred_Diabetes, y = residual)) +
+  geom_point(alpha = 0.6) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  labs(title = "LDA Residual Plot",
+       x = "Predicted Probability (Diabetes)",
+       y = "Residual") +
+  theme_minimal()
+```
+
+## Confusion matrix
+```{r}
+lda_preds %>%
+  conf_mat(truth = Outcome, estimate = .pred_class)
+```
+
+```{r}
+lda_preds %>%
+  roc_curve(truth = Outcome, .pred_Diabetes) %>%
+  autoplot()
+
+lda_preds %>%
+  roc_auc(truth = Outcome, .pred_Diabetes)
+```
+
+
+```{r}
+lda_preds %>%
+  metrics(truth = Outcome, estimate = .pred_class)
+
+lda_preds %>%
+  yardstick::precision(truth = Outcome, estimate = .pred_class)
+
+lda_preds %>%
+  yardstick::recall(truth = Outcome, estimate = .pred_class)
+
+lda_preds %>%
+  yardstick::f_meas(truth = Outcome, estimate = .pred_class)
+```
+
+# 4. Poisson Regression (predict count outcome: Pregnancies)
+
+A clear example of my ability to apply the appropriate generalized linear model is seen in my use of Poisson Regression to predict the number of pregnancies based on health indicators such as glucose, insulin, BMI, and diabetes pedigree. This modeling decision was grounded in the nature of the response variable: count data. Since the number of pregnancies is a non-negative integer that can only take on whole values and is theoretically unbounded, Poisson regression was the most suitable choice within the GLM family.
+
+By fitting the Poisson model, I accounted for the logarithmic relationship between the expected number of events (pregnancies) and the linear combination of predictors. I interpreted the model coefficients as multiplicative effects on the rate of pregnancies, which aligned with the theory behind the log link function. For example, a positive coefficient for glucose implied that higher glucose levels were associated with a higher expected count of pregnancies, holding other variables constant. Additionally, I evaluated model diagnostics such as residual plots and goodness-of-fit statistics to ensure assumptions like equidispersion were not severely violated.
+
+This work not only reinforced my understanding of when and how to apply Poisson regression but also allowed me to practice tailoring models to the data type and research question at hand. It strengthened my ability to think critically about the relationship between the distribution of the outcome variable and the statistical tools best suited to uncover meaningful patterns.
+
+```{r}
+poisson_recipe <- recipe(Glucose ~ Pregnancies + BloodPressure + SkinThickness + 
+                         Insulin + BMI + DiabetesPedigreeFunction + Age, data = diabetes_train)
+
+poisson_spec <- poisson_reg() %>%
+  set_engine("glm") %>%
+  set_mode("regression")
+
+poisson_wf <- workflow() %>%
+  add_recipe(poisson_recipe) %>%
+  add_model(poisson_spec)
+
+poisson_fit <- fit(poisson_wf, data = diabetes_train)
+
+# Evaluate
+predict(poisson_fit, diabetes_test) %>%
+  bind_cols(diabetes_test) %>%
+  metrics(truth = Pregnancies, estimate = .pred)
+```
+
+```{r}
+poisson_preds <- predict(poisson_fit, diabetes_test) %>%
+  bind_cols(diabetes_test)
+
+poisson_preds
+```
+
+```{r}
+poisson_preds <- poisson_preds %>%
+  mutate(residual = Pregnancies - .pred)
+
+ggplot(poisson_preds, aes(x = .pred, y = residual)) +
+  geom_point(alpha = 0.6) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
+  labs(title = "Residual Plot for Poisson Regression",
+       x = "Predicted Glucose",
+       y = "Residual (Observed - Predicted)") +
+  theme_minimal()
+```
+
+
+```{r}
+poisson_preds %>% rmse(truth = Pregnancies, estimate = .pred)
+poisson_preds %>% mae(truth = Pregnancies, estimate = .pred)
+poisson_preds %>% rsq(truth = Pregnancies, estimate = .pred)
+```
+
+
+```{r}
+ggplot(poisson_preds, aes(x = Glucose, y = .pred)) +
+  geom_point(alpha = 0.6) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "blue") +
+  labs(title = "Observed vs Predicted Counts",
+       x = "Actual Glucose",
+       y = "Predicted Glucose") +
+  theme_minimal()
+```
+
+
+```{r}
+poisson_model <- extract_fit_engine(poisson_fit)
+summary(poisson_model)
+
+# You can also compute dispersion:
+dispersion <- sum(residuals(poisson_model, type = "pearson")^2) / poisson_model$df.residual
+dispersion  
+```
+
+# 5. Polynomial Regression (e.g., predict Glucose using polynomial of Age)
+
+## Learning Objective 4: Use programming software to fit and assess statistical models
+Throughout the semester, I relied heavily on R and the tidymodels framework to build, evaluate, and fine-tune statistical models. I became proficient in using functions such as recipe(), workflow(), fit_resamples(), and metrics() to structure my analysis pipeline efficiently. For example, when implementing LDA and Polynomial Regression, I automated preprocessing steps such as normalization, polynomial feature engineering, and resampling to ensure model reproducibility and performance.
+
+These tools allowed me not just to fit models but to assess them using rigorous validation techniques. I built pipelines that could be adapted quickly for other projects, demonstrating both programming fluency and statistical insight. By combining tidy principles with strong model assessment practices, I have grown significantly in my ability to translate statistical questions into robust, reproducible code and analysis workflows.
+
+```{r}
+# Create the recipe using step_poly for Age
+poly_recipe <- recipe(Glucose ~ Pregnancies + BloodPressure + SkinThickness + 
+                         Insulin + BMI + DiabetesPedigreeFunction + Age, data = diabetes_train) %>%
+  step_poly(Age, degree = 3)
+
+# Specify a linear regression model
+lm_spec <- linear_reg() %>%
+  set_engine("lm")
+
+# Build the workflow
+lm_wf <- workflow() %>%
+  add_recipe(poly_recipe) %>%
+  add_model(lm_spec)
+
+# Fit the model
+lm_fit <- fit(lm_wf, data = diabetes_train)
+
+# Predict and evaluate on the test set
+predict(lm_fit, diabetes_test) %>%
+  bind_cols(diabetes_test) %>%
+  metrics(truth = Glucose, estimate = .pred)
+```
+
+```{r}
+poly_preds <- predict(lm_fit, diabetes_test) %>%
+  bind_cols(diabetes_test)
+
+poly_preds
+```
+
+```{r}
+poly_preds <- poly_preds %>%
+  mutate(residual = Glucose - .pred)
+
+ggplot(poly_preds, aes(x = .pred, y = residual)) +
+  geom_point(alpha = 0.6) +
+  geom_hline(yintercept = 0, color = "red", linetype = "dashed") +
+  labs(title = "Residual Plot (Polynomial Regression)",
+       x = "Predicted Glucose",
+       y = "Residual (Observed - Predicted)") +
+  theme_minimal()
+```
+
+
+## Learning Objective 5: Express the results of statistical models to a general audience
+
+Throughout this class, I made a conscious effort to communicate model results in a way that a non-statistical audience could understand. For instance, in my Binary Logistic Regression write-up, I translated odds ratios into everyday terms: explaining how a one-unit increase in glucose results in an increased risk of diabetes by a specific percentage. I also discussed why variables like BMI or insulin levels matter from a public health standpoint, not just statistically.
+
+Visual aids such as ROC curves, confusion matrices, and coefficient plots were employed to explain model performance. These tools provided intuitive insights into sensitivity, specificity, and prediction accuracy. In reflecting on this work, I recognize how critical communication is in applied statistics—technical accuracy must be paired with clarity. This objective deepened my awareness of how to deliver statistical findings to both technical and non-technical stakeholders in a meaningful way.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

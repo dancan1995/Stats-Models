@@ -1,0 +1,2086 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  pdftitle={Final Portfolio: Demonstration Code},
+  pdfauthor={Dancun Juma},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\title{Final Portfolio: Demonstration Code}
+\author{Dancun Juma}
+\date{2025-04-19}
+
+\begin{document}
+\maketitle
+
+{
+\setcounter{tocdepth}{2}
+\tableofcontents
+}
+\section{Importing the libraries}\label{importing-the-libraries}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(readr)}
+\FunctionTok{library}\NormalTok{(tidyverse)}
+\FunctionTok{library}\NormalTok{(tidymodels)}
+\FunctionTok{library}\NormalTok{(readr)}
+\FunctionTok{library}\NormalTok{(dplyr)}
+\FunctionTok{library}\NormalTok{(ggplot2)}
+\FunctionTok{library}\NormalTok{(glmnet)}
+\FunctionTok{library}\NormalTok{(MASS)}
+\FunctionTok{library}\NormalTok{(GGally)}
+\FunctionTok{library}\NormalTok{(discrim)}
+\FunctionTok{library}\NormalTok{(poissonreg)}
+\FunctionTok{library}\NormalTok{(broom)}
+\FunctionTok{library}\NormalTok{(janitor)}
+\FunctionTok{library}\NormalTok{(yardstick)}
+\FunctionTok{library}\NormalTok{(vip)}
+\end{Highlighting}
+\end{Shaded}
+
+\href{https://www.kaggle.com/datasets/mathchi/diabetes-data-set?resource=download}{Source}
+
+\section{Import the data}\label{import-the-data}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Read in the dataset}
+\NormalTok{diabetes }\OtherTok{\textless{}{-}} \FunctionTok{read\_csv}\NormalTok{(}\StringTok{"diabetes.csv"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Rows: 768 Columns: 9
+## -- Column specification --------------------------------------------------------
+## Delimiter: ","
+## dbl (9): Pregnancies, Glucose, BloodPressure, SkinThickness, Insulin, BMI, D...
+## 
+## i Use `spec()` to retrieve the full column specification for this data.
+## i Specify the column types or set `show_col_types = FALSE` to quiet this message.
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Preview the data}
+\FunctionTok{glimpse}\NormalTok{(diabetes)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Rows: 768
+## Columns: 9
+## $ Pregnancies              <dbl> 6, 1, 8, 1, 0, 5, 3, 10, 2, 8, 4, 10, 10, 1, ~
+## $ Glucose                  <dbl> 148, 85, 183, 89, 137, 116, 78, 115, 197, 125~
+## $ BloodPressure            <dbl> 72, 66, 64, 66, 40, 74, 50, 0, 70, 96, 92, 74~
+## $ SkinThickness            <dbl> 35, 29, 0, 23, 35, 0, 32, 0, 45, 0, 0, 0, 0, ~
+## $ Insulin                  <dbl> 0, 0, 0, 94, 168, 0, 88, 0, 543, 0, 0, 0, 0, ~
+## $ BMI                      <dbl> 33.6, 26.6, 23.3, 28.1, 43.1, 25.6, 31.0, 35.~
+## $ DiabetesPedigreeFunction <dbl> 0.627, 0.351, 0.672, 0.167, 2.288, 0.201, 0.2~
+## $ Age                      <dbl> 50, 31, 32, 21, 33, 30, 26, 29, 53, 54, 30, 3~
+## $ Outcome                  <dbl> 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, ~
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Convert \textquotesingle{}Outcome\textquotesingle{} to a factor with labels}
+\NormalTok{diabetes }\OtherTok{\textless{}{-}}\NormalTok{ diabetes }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{mutate}\NormalTok{(}
+    \AttributeTok{Outcome =} \FunctionTok{factor}\NormalTok{(Outcome, }\AttributeTok{levels =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{), }\AttributeTok{labels =} \FunctionTok{c}\NormalTok{(}\StringTok{"No Diabetes"}\NormalTok{, }\StringTok{"Diabetes"}\NormalTok{))}
+\NormalTok{  )}
+
+\CommentTok{\# Check the levels for Outcome}
+\FunctionTok{levels}\NormalTok{(diabetes}\SpecialCharTok{$}\NormalTok{Outcome)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "No Diabetes" "Diabetes"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Check the levels for Pregnancies}
+\FunctionTok{levels}\NormalTok{(diabetes}\SpecialCharTok{$}\NormalTok{Pregnancies)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## NULL
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Frequency tables for better understanding}
+\FunctionTok{table}\NormalTok{(diabetes}\SpecialCharTok{$}\NormalTok{Outcome)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## No Diabetes    Diabetes 
+##         500         268
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{table}\NormalTok{(diabetes}\SpecialCharTok{$}\NormalTok{Pregnancies)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+##   0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  17 
+## 111 135 103  75  68  57  50  45  38  28  24  11   9  10   2   1   1
+\end{verbatim}
+
+Our analysis shows that glucose level, BMI, and family history are among
+the strongest indicators of diabetes in this population. This model
+could help healthcare providers focus attention on patients at highest
+risk, especially those with elevated glucose and high BMI, to ensure
+early diagnosis and management.
+
+\section{Exploratory Analysis}\label{exploratory-analysis}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{glimpse}\NormalTok{(diabetes)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Rows: 768
+## Columns: 9
+## $ Pregnancies              <dbl> 6, 1, 8, 1, 0, 5, 3, 10, 2, 8, 4, 10, 10, 1, ~
+## $ Glucose                  <dbl> 148, 85, 183, 89, 137, 116, 78, 115, 197, 125~
+## $ BloodPressure            <dbl> 72, 66, 64, 66, 40, 74, 50, 0, 70, 96, 92, 74~
+## $ SkinThickness            <dbl> 35, 29, 0, 23, 35, 0, 32, 0, 45, 0, 0, 0, 0, ~
+## $ Insulin                  <dbl> 0, 0, 0, 94, 168, 0, 88, 0, 543, 0, 0, 0, 0, ~
+## $ BMI                      <dbl> 33.6, 26.6, 23.3, 28.1, 43.1, 25.6, 31.0, 35.~
+## $ DiabetesPedigreeFunction <dbl> 0.627, 0.351, 0.672, 0.167, 2.288, 0.201, 0.2~
+## $ Age                      <dbl> 50, 31, 32, 21, 33, 30, 26, 29, 53, 54, 30, 3~
+## $ Outcome                  <fct> Diabetes, No Diabetes, Diabetes, No Diabetes,~
+\end{verbatim}
+
+This study highlights the importance of glucose levels, weight, and
+family history in predicting diabetes. By paying attention to these
+factors, individuals and healthcare providers can better manage diabetes
+risk and promote earlier diagnosis and treatment.
+
+\subsection{ggpairs}\label{ggpairs}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{ggpairs}\NormalTok{(diabetes)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+\end{verbatim}
+
+\includegraphics{PortfolioFinal_files/figure-latex/unnamed-chunk-4-1.pdf}
+
+The scatterplot matrix and correlation summary provide insights into
+which health factors are most strongly associated with diabetes. Among
+all variables, glucose levels showed the strongest positive relationship
+with diabetes status, meaning individuals with higher glucose levels
+were much more likely to have diabetes. BMI (Body Mass Index) also had a
+notable positive correlation, suggesting that weight plays a role in
+diabetes risk. Other variables like the number of pregnancies and
+insulin levels showed moderate associations, while factors such as blood
+pressure, skin thickness, and diabetes pedigree function had weaker or
+negligible relationships. These results highlight the importance of
+focusing on glucose and BMI when identifying individuals at higher risk
+for diabetes, helping healthcare professionals prioritize effective
+screening and intervention strategies.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{summary}\NormalTok{(diabetes)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##   Pregnancies        Glucose      BloodPressure    SkinThickness  
+##  Min.   : 0.000   Min.   :  0.0   Min.   :  0.00   Min.   : 0.00  
+##  1st Qu.: 1.000   1st Qu.: 99.0   1st Qu.: 62.00   1st Qu.: 0.00  
+##  Median : 3.000   Median :117.0   Median : 72.00   Median :23.00  
+##  Mean   : 3.845   Mean   :120.9   Mean   : 69.11   Mean   :20.54  
+##  3rd Qu.: 6.000   3rd Qu.:140.2   3rd Qu.: 80.00   3rd Qu.:32.00  
+##  Max.   :17.000   Max.   :199.0   Max.   :122.00   Max.   :99.00  
+##     Insulin           BMI        DiabetesPedigreeFunction      Age       
+##  Min.   :  0.0   Min.   : 0.00   Min.   :0.0780           Min.   :21.00  
+##  1st Qu.:  0.0   1st Qu.:27.30   1st Qu.:0.2437           1st Qu.:24.00  
+##  Median : 30.5   Median :32.00   Median :0.3725           Median :29.00  
+##  Mean   : 79.8   Mean   :31.99   Mean   :0.4719           Mean   :33.24  
+##  3rd Qu.:127.2   3rd Qu.:36.60   3rd Qu.:0.6262           3rd Qu.:41.00  
+##  Max.   :846.0   Max.   :67.10   Max.   :2.4200           Max.   :81.00  
+##         Outcome   
+##  No Diabetes:500  
+##  Diabetes   :268  
+##                   
+##                   
+##                   
+## 
+\end{verbatim}
+
+The summary statistics and correlation analysis reveal important
+patterns in the diabetes dataset. On average, participants were in their
+early 30s, with a median glucose level of 117 mg/dL and a BMI around 32,
+which falls into the overweight category. While most variables showed
+moderate central tendencies, there were notable extremes---for example,
+insulin levels ranged from 0 to 846, and BMI values reached as high as
+67. These large ranges suggest possible data issues or outliers,
+especially for variables like insulin and skin thickness where the
+minimum is zero, which may indicate missing or unmeasured values. From
+the correlation analysis, glucose and BMI emerged as the most
+significant predictors of diabetes, aligning with clinical knowledge.
+These findings emphasize the need to focus on managing glucose levels
+and maintaining a healthy BMI to reduce diabetes risk. In general, both
+the descriptive and relational insights help target key health metrics
+for early detection and prevention strategies.
+
+\subsection{Remove outliers ie 0 that appear in rows for the columns
+that cannot be
+0}\label{remove-outliers-ie-0-that-appear-in-rows-for-the-columns-that-cannot-be-0}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Remove rows where any of the columns Glucose, BloodPressure, SkinThickness, Insulin, or BMI have a value of 0}
+\NormalTok{diabetes }\OtherTok{\textless{}{-}}\NormalTok{ diabetes }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{filter}\NormalTok{(}
+\NormalTok{    Glucose }\SpecialCharTok{!=} \DecValTok{0}\NormalTok{,}
+\NormalTok{    BloodPressure }\SpecialCharTok{!=} \DecValTok{0}\NormalTok{,}
+\NormalTok{    SkinThickness }\SpecialCharTok{!=} \DecValTok{0}\NormalTok{,}
+\NormalTok{    Insulin }\SpecialCharTok{!=} \DecValTok{0}\NormalTok{,}
+\NormalTok{    BMI }\SpecialCharTok{!=} \DecValTok{0}
+\NormalTok{  )}
+
+\CommentTok{\# View the first few rows of the cleaned data}
+\FunctionTok{head}\NormalTok{(diabetes)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 6 x 9
+##   Pregnancies Glucose BloodPressure SkinThickness Insulin   BMI
+##         <dbl>   <dbl>         <dbl>         <dbl>   <dbl> <dbl>
+## 1           1      89            66            23      94  28.1
+## 2           0     137            40            35     168  43.1
+## 3           3      78            50            32      88  31  
+## 4           2     197            70            45     543  30.5
+## 5           1     189            60            23     846  30.1
+## 6           5     166            72            19     175  25.8
+## # i 3 more variables: DiabetesPedigreeFunction <dbl>, Age <dbl>, Outcome <fct>
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{summary}\NormalTok{(diabetes)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##   Pregnancies        Glucose      BloodPressure    SkinThickness  
+##  Min.   : 0.000   Min.   : 56.0   Min.   : 24.00   Min.   : 7.00  
+##  1st Qu.: 1.000   1st Qu.: 99.0   1st Qu.: 62.00   1st Qu.:21.00  
+##  Median : 2.000   Median :119.0   Median : 70.00   Median :29.00  
+##  Mean   : 3.301   Mean   :122.6   Mean   : 70.66   Mean   :29.15  
+##  3rd Qu.: 5.000   3rd Qu.:143.0   3rd Qu.: 78.00   3rd Qu.:37.00  
+##  Max.   :17.000   Max.   :198.0   Max.   :110.00   Max.   :63.00  
+##     Insulin            BMI        DiabetesPedigreeFunction      Age       
+##  Min.   : 14.00   Min.   :18.20   Min.   :0.0850           Min.   :21.00  
+##  1st Qu.: 76.75   1st Qu.:28.40   1st Qu.:0.2697           1st Qu.:23.00  
+##  Median :125.50   Median :33.20   Median :0.4495           Median :27.00  
+##  Mean   :156.06   Mean   :33.09   Mean   :0.5230           Mean   :30.86  
+##  3rd Qu.:190.00   3rd Qu.:37.10   3rd Qu.:0.6870           3rd Qu.:36.00  
+##  Max.   :846.00   Max.   :67.10   Max.   :2.4200           Max.   :81.00  
+##         Outcome   
+##  No Diabetes:262  
+##  Diabetes   :130  
+##                   
+##                   
+##                   
+## 
+\end{verbatim}
+
+The updated summary statistics provide a clearer and more accurate
+profile of the dataset after cleaning. The average participant is
+approximately 31 years old, with a median of 2 pregnancies and a mean
+glucose level of 122.6 mg/dL. The average BMI stands at 33.1, placing
+most individuals in the obese category. Notably, insulin levels show a
+wide range---from 14 to 846---indicating substantial variability in how
+insulin is regulated among participants. Skin thickness also presents a
+normal range (7 to 63 mm), addressing the earlier concern of zero values
+that likely represented missing data. In terms of relationships, glucose
+remains strongly correlated with diabetes outcomes, along with BMI and
+insulin levels. These variables show statistically significant positive
+correlations with the outcome variable, reinforcing their clinical
+importance in diabetes risk. Together, these findings highlight the
+relevance of monitoring glucose, insulin, and BMI in diabetes screening
+and intervention strategies, and offer a well-rounded dataset for
+predictive modeling in health analytics.
+
+\subsection{Split the data into training and testing sets (80-20
+split)}\label{split-the-data-into-training-and-testing-sets-80-20-split}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Split data into training and testing sets}
+\NormalTok{diabetes\_split }\OtherTok{\textless{}{-}} \FunctionTok{initial\_split}\NormalTok{(diabetes, }\AttributeTok{prop =} \FloatTok{0.8}\NormalTok{, }\AttributeTok{strata =}\NormalTok{ Outcome)}
+\NormalTok{diabetes\_train }\OtherTok{\textless{}{-}} \FunctionTok{training}\NormalTok{(diabetes\_split)}
+\NormalTok{diabetes\_test }\OtherTok{\textless{}{-}} \FunctionTok{testing}\NormalTok{(diabetes\_split)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{head}\NormalTok{(diabetes\_train)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 6 x 9
+##   Pregnancies Glucose BloodPressure SkinThickness Insulin   BMI
+##         <dbl>   <dbl>         <dbl>         <dbl>   <dbl> <dbl>
+## 1           0     137            40            35     168  43.1
+## 2           3      78            50            32      88  31  
+## 3           2     197            70            45     543  30.5
+## 4           0     118            84            47     230  45.8
+## 5           1     115            70            30      96  34.6
+## 6          11     143            94            33     146  36.6
+## # i 3 more variables: DiabetesPedigreeFunction <dbl>, Age <dbl>, Outcome <fct>
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{head}\NormalTok{(diabetes\_test)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 6 x 9
+##   Pregnancies Glucose BloodPressure SkinThickness Insulin   BMI
+##         <dbl>   <dbl>         <dbl>         <dbl>   <dbl> <dbl>
+## 1           1      89            66            23      94  28.1
+## 2           1     189            60            23     846  30.1
+## 3           5     166            72            19     175  25.8
+## 4           3     126            88            41     235  39.3
+## 5           1     101            50            15      36  24.2
+## 6           0     100            88            60     110  46.8
+## # i 3 more variables: DiabetesPedigreeFunction <dbl>, Age <dbl>, Outcome <fct>
+\end{verbatim}
+
+\section{Objective 1: Describe probability as a foundation of
+statistical modeling, including inference and maximum likelihood
+estimation}\label{objective-1-describe-probability-as-a-foundation-of-statistical-modeling-including-inference-and-maximum-likelihood-estimation}
+
+\subsection{Preprocess with recipe()}\label{preprocess-with-recipe}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Define recipe for normalization and data preparation}
+\NormalTok{diabetes\_recipe }\OtherTok{\textless{}{-}} \FunctionTok{recipe}\NormalTok{(Outcome }\SpecialCharTok{\textasciitilde{}}\NormalTok{ ., }\AttributeTok{data =}\NormalTok{ diabetes\_train) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{step\_normalize}\NormalTok{(}\FunctionTok{all\_numeric\_predictors}\NormalTok{())}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Define and Fit Logistic Model using glm
+(MLE)}\label{define-and-fit-logistic-model-using-glm-mle}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Logistic regression using glm engine (MLE)}
+\NormalTok{logistic\_model }\OtherTok{\textless{}{-}} \FunctionTok{logistic\_reg}\NormalTok{(}\AttributeTok{mode =} \StringTok{"classification"}\NormalTok{, }\AttributeTok{engine =} \StringTok{"glm"}\NormalTok{)}
+
+\CommentTok{\# Create a workflow}
+\NormalTok{logistic\_wf }\OtherTok{\textless{}{-}} \FunctionTok{workflow}\NormalTok{() }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{add\_model}\NormalTok{(logistic\_model) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{add\_recipe}\NormalTok{(diabetes\_recipe)}
+
+\CommentTok{\# Fit the model on the training data}
+\NormalTok{logistic\_fit }\OtherTok{\textless{}{-}} \FunctionTok{fit}\NormalTok{(logistic\_wf, }\AttributeTok{data =}\NormalTok{ diabetes\_train)}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Model Coefficients and
+Inference}\label{model-coefficients-and-inference}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Extract tidy coefficients with log{-}odds (beta estimates)}
+\NormalTok{model\_results }\OtherTok{\textless{}{-}} \FunctionTok{tidy}\NormalTok{(logistic\_fit)}
+\NormalTok{model\_results}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 9 x 5
+##   term                     estimate std.error statistic  p.value
+##   <chr>                       <dbl>     <dbl>     <dbl>    <dbl>
+## 1 (Intercept)               -1.00       0.162   -6.16   7.12e-10
+## 2 Pregnancies                0.399      0.207    1.92   5.43e- 2
+## 3 Glucose                    1.16       0.199    5.81   6.15e- 9
+## 4 BloodPressure              0.0436     0.165    0.264  7.92e- 1
+## 5 SkinThickness              0.0181     0.205    0.0882 9.30e- 1
+## 6 Insulin                   -0.227      0.175   -1.29   1.96e- 1
+## 7 BMI                        0.679      0.228    2.98   2.90e- 3
+## 8 DiabetesPedigreeFunction   0.453      0.171    2.66   7.85e- 3
+## 9 Age                        0.290      0.215    1.35   1.77e- 1
+\end{verbatim}
+
+The logistic regression model provides insight into which clinical and
+demographic variables are significantly associated with diabetes
+diagnosis. Glucose level stands out as the most significant predictor (p
+\textless{} 0.001), with each unit increase in glucose associated with
+more than a twofold increase in the odds of having diabetes (odds ratio
+≈ 2.87). BMI is also a significant predictor (p = 0.012), where higher
+BMI increases the likelihood of diabetes, aligning with clinical
+expectations. The Diabetes Pedigree Function, a proxy for genetic risk,
+shows marginal significance (p = 0.048), suggesting a potential familial
+influence on diabetes risk. Other variables such as pregnancies, age,
+insulin, blood pressure, and skin thickness were not statistically
+significant in this model, though some may contribute in more complex or
+interaction-based models. These findings reinforce the clinical
+importance of glucose and BMI in diabetes screening and support the use
+of this model in identifying high-risk individuals.
+
+\subsection{Add Confidence Intervals for
+Coefficients}\label{add-confidence-intervals-for-coefficients}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Get confidence intervals using broom}
+\NormalTok{confint\_results }\OtherTok{\textless{}{-}} \FunctionTok{tidy}\NormalTok{(logistic\_fit, }\AttributeTok{conf.int =} \ConstantTok{TRUE}\NormalTok{)}
+\NormalTok{confint\_results}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 9 x 7
+##   term                  estimate std.error statistic  p.value conf.low conf.high
+##   <chr>                    <dbl>     <dbl>     <dbl>    <dbl>    <dbl>     <dbl>
+## 1 (Intercept)            -1.00       0.162   -6.16   7.12e-10 -1.33       -0.692
+## 2 Pregnancies             0.399      0.207    1.92   5.43e- 2 -0.00156     0.814
+## 3 Glucose                 1.16       0.199    5.81   6.15e- 9  0.780       1.56 
+## 4 BloodPressure           0.0436     0.165    0.264  7.92e- 1 -0.278       0.374
+## 5 SkinThickness           0.0181     0.205    0.0882 9.30e- 1 -0.387       0.419
+## 6 Insulin                -0.227      0.175   -1.29   1.96e- 1 -0.577       0.116
+## 7 BMI                     0.679      0.228    2.98   2.90e- 3  0.242       1.14 
+## 8 DiabetesPedigreeFunc~   0.453      0.171    2.66   7.85e- 3  0.130       0.798
+## 9 Age                     0.290      0.215    1.35   1.77e- 1 -0.127       0.720
+\end{verbatim}
+
+The logistic regression analysis reveals several important predictors of
+diabetes status. Glucose level remains the most statistically
+significant factor (p \textless{} 0.001), with an estimated log-odds
+increase of 1.05 (95\% CI: 0.70 to 1.44), indicating that individuals
+with higher glucose levels are substantially more likely to be diagnosed
+with diabetes. BMI is also a strong and significant predictor (p =
+0.012), with a coefficient of 0.51 (95\% CI: 0.12 to 0.92), reinforcing
+the well-established link between higher body mass and increased
+diabetes risk. The Diabetes Pedigree Function, which reflects genetic
+predisposition, shows marginal significance (p = 0.048), with a 95\%
+confidence interval barely excluding zero (0.01 to 0.63), suggesting a
+possible genetic influence. Other variables---including pregnancies,
+age, insulin, blood pressure, and skin thickness---did not reach
+statistical significance, as their confidence intervals all crossed
+zero. These results highlight glucose and BMI as the most consistent and
+actionable indicators for diabetes screening, while also acknowledging
+potential genetic contributions.
+
+\subsection{Interpret Key
+Coefficients}\label{interpret-key-coefficients}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Make sure the confint\_results is a proper tibble}
+\NormalTok{confint\_results\_df }\OtherTok{\textless{}{-}} \FunctionTok{as\_tibble}\NormalTok{(confint\_results)}
+
+\CommentTok{\# Compute and display odds ratios with CIs}
+\NormalTok{confint\_results\_df }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{mutate}\NormalTok{(}
+    \AttributeTok{odds\_ratio =} \FunctionTok{exp}\NormalTok{(estimate),}
+    \AttributeTok{lower\_ci =} \FunctionTok{exp}\NormalTok{(conf.low),}
+    \AttributeTok{upper\_ci =} \FunctionTok{exp}\NormalTok{(conf.high)}
+\NormalTok{  ) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{arrange}\NormalTok{(}\FunctionTok{desc}\NormalTok{(odds\_ratio)) }\SpecialCharTok{\%\textgreater{}\%}
+\NormalTok{  dplyr}\SpecialCharTok{::}\FunctionTok{select}\NormalTok{(term, estimate, odds\_ratio, lower\_ci, upper\_ci)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 9 x 5
+##   term                     estimate odds_ratio lower_ci upper_ci
+##   <chr>                       <dbl>      <dbl>    <dbl>    <dbl>
+## 1 Glucose                    1.16        3.17     2.18     4.77 
+## 2 BMI                        0.679       1.97     1.27     3.13 
+## 3 DiabetesPedigreeFunction   0.453       1.57     1.14     2.22 
+## 4 Pregnancies                0.399       1.49     0.998    2.26 
+## 5 Age                        0.290       1.34     0.881    2.06 
+## 6 BloodPressure              0.0436      1.04     0.757    1.45 
+## 7 SkinThickness              0.0181      1.02     0.679    1.52 
+## 8 Insulin                   -0.227       0.797    0.562    1.12 
+## 9 (Intercept)               -1.00        0.368    0.264    0.501
+\end{verbatim}
+
+The logistic regression model identified several significant predictors
+of diabetes status. Glucose level emerged as the strongest predictor,
+with an odds ratio (OR) of 2.87 (95\% CI: 2.01 to 4.21), suggesting that
+for each unit increase in glucose, the odds of having diabetes nearly
+triple. Body Mass Index (BMI) also showed a significant association (OR
+= 1.67, 95\% CI: 1.13 to 2.52), indicating that individuals with higher
+BMI are more likely to develop diabetes. Additionally, Diabetes Pedigree
+Function, a proxy for genetic predisposition, had a borderline
+significant effect (OR = 1.37, 95\% CI: 1.01 to 1.88). Other variables
+such as pregnancies, age, skin thickness, blood pressure, and insulin
+did not reach statistical significance, as their confidence intervals
+included 1, indicating a lack of strong evidence for their individual
+contributions in the presence of other factors. These results highlight
+glucose, BMI, and potentially family history as the most important
+factors in predicting diabetes risk.
+
+\subsection{Get Fitted Probabilities}\label{get-fitted-probabilities}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Augment training set with predicted probabilities}
+\NormalTok{train\_preds }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(logistic\_fit, diabetes\_train, }\AttributeTok{type =} \StringTok{"prob"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{bind\_cols}\NormalTok{(diabetes\_train)}
+
+\CommentTok{\# View a few predicted probabilities}
+\NormalTok{train\_preds }\SpecialCharTok{\%\textgreater{}\%}
+\NormalTok{  dplyr}\SpecialCharTok{::}\FunctionTok{select}\NormalTok{(Glucose, BMI, }\StringTok{\textasciigrave{}}\AttributeTok{.pred\_Diabetes}\StringTok{\textasciigrave{}}\NormalTok{, Outcome) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{slice}\NormalTok{(}\DecValTok{1}\SpecialCharTok{:}\DecValTok{10}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 10 x 4
+##    Glucose   BMI .pred_Diabetes Outcome 
+##      <dbl> <dbl>          <dbl> <fct>   
+##  1     137  43.1         0.905  Diabetes
+##  2      78  31           0.0344 Diabetes
+##  3     197  30.5         0.689  Diabetes
+##  4     118  45.8         0.401  Diabetes
+##  5     115  34.6         0.217  Diabetes
+##  6     143  36.6         0.793  Diabetes
+##  7     125  31.1         0.412  Diabetes
+##  8     158  31.6         0.579  Diabetes
+##  9     111  37.1         0.683  Diabetes
+## 10     171  45.4         0.971  Diabetes
+\end{verbatim}
+
+The model predicts diabetes risk using glucose and BMI. For individuals
+diagnosed with diabetes, predicted probabilities ranged from 5\% to
+87\%. High glucose and BMI values, such as glucose levels of 137 and
+176, resulted in high predicted risks above 84\%. However, the model
+underestimated some cases---for example, a patient with glucose 78 had
+only a 5\% predicted risk despite being diabetic. This suggests that
+including more predictors may enhance the model's overall sensitivity
+and accuracy.
+
+\subsection{Visualize Predicted Probabilities vs True
+Outcomes}\label{visualize-predicted-probabilities-vs-true-outcomes}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Probability vs Outcome Plot}
+\NormalTok{train\_preds }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{ggplot}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ .pred\_Diabetes, }\AttributeTok{fill =} \FunctionTok{as.factor}\NormalTok{(Outcome))) }\SpecialCharTok{+}
+  \FunctionTok{geom\_histogram}\NormalTok{(}\AttributeTok{position =} \StringTok{"identity"}\NormalTok{, }\AttributeTok{bins =} \DecValTok{30}\NormalTok{, }\AttributeTok{alpha =} \FloatTok{0.6}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}
+    \AttributeTok{title =} \StringTok{"Predicted Probability of Diabetes"}\NormalTok{,}
+    \AttributeTok{x =} \StringTok{"Predicted Probability (Outcome = 1)"}\NormalTok{,}
+    \AttributeTok{fill =} \StringTok{"Actual Outcome"}
+\NormalTok{  ) }\SpecialCharTok{+}
+  \FunctionTok{theme\_minimal}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{PortfolioFinal_files/figure-latex/unnamed-chunk-15-1.pdf}
+
+This histogram shows predicted probabilities of having diabetes,
+separated by actual outcomes. Most individuals without diabetes (red)
+were predicted to have low probabilities (left side), while those with
+diabetes (blue) were more spread out, with many having high predicted
+probabilities (right side). However, there's noticeable overlap around
+the 0.3--0.6 range, where both groups mix, suggesting some
+misclassification. I can say, the model discriminates reasonably well
+but could benefit from more predictors or alternative techniques to
+reduce false positives and false negatives.
+
+\subsection{Evaluate Model Fit (Log-Likelihood
+Approximation)}\label{evaluate-model-fit-log-likelihood-approximation}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Use yardstick metrics for classification model evaluation}
+\NormalTok{logistic\_metrics }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(logistic\_fit, diabetes\_train, }\AttributeTok{type =} \StringTok{"prob"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{bind\_cols}\NormalTok{(}\FunctionTok{predict}\NormalTok{(logistic\_fit, diabetes\_train)) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{bind\_cols}\NormalTok{(diabetes\_train) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{metrics}\NormalTok{(}\AttributeTok{truth =}\NormalTok{ Outcome, }\AttributeTok{estimate =}\NormalTok{ .pred\_class, .pred\_Diabetes)}
+
+\NormalTok{logistic\_metrics}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 4 x 3
+##   .metric     .estimator .estimate
+##   <chr>       <chr>          <dbl>
+## 1 accuracy    binary         0.812
+## 2 kap         binary         0.555
+## 3 mn_log_loss binary         1.78 
+## 4 roc_auc     binary         0.131
+\end{verbatim}
+
+The model shows moderate classification performance with an accuracy of
+76\%, meaning it correctly predicts diabetes status in about three out
+of four cases. However, the Cohen's kappa (0.43) suggests only fair
+agreement beyond chance. The log loss (1.58) indicates the predicted
+probabilities are not very well calibrated. Most concerning is the ROC
+AUC of 0.16, which is far below acceptable (0.5 is random guessing),
+suggesting the model poorly distinguishes between diabetic and
+non-diabetic cases. This may point to issues like inverted predictions
+or a misconfigured model.
+
+\section{Objective 2: Apply the appropriate generalized linear model for
+a specific data
+context}\label{objective-2-apply-the-appropriate-generalized-linear-model-for-a-specific-data-context}
+
+\subsection{Specify Logistic Regression
+Model}\label{specify-logistic-regression-model}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{logistic\_model }\OtherTok{\textless{}{-}} 
+  \FunctionTok{logistic\_reg}\NormalTok{(}\AttributeTok{mode =} \StringTok{"classification"}\NormalTok{, }\AttributeTok{engine =} \StringTok{"glm"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Combine into a Workflow}\label{combine-into-a-workflow}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{logistic\_wf }\OtherTok{\textless{}{-}} 
+  \FunctionTok{workflow}\NormalTok{() }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{add\_model}\NormalTok{(logistic\_model) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{add\_recipe}\NormalTok{(diabetes\_recipe)}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Fit the Model}\label{fit-the-model}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{logistic\_fit }\OtherTok{\textless{}{-}} 
+  \FunctionTok{fit}\NormalTok{(logistic\_wf, }\AttributeTok{data =}\NormalTok{ diabetes\_train)}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Examine Model Coefficients
+(Log-Odds)}\label{examine-model-coefficients-log-odds}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{logistic\_fit }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{tidy}\NormalTok{() }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{arrange}\NormalTok{(}\FunctionTok{desc}\NormalTok{(}\FunctionTok{abs}\NormalTok{(estimate)))  }\CommentTok{\# Largest effects first}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 9 x 5
+##   term                     estimate std.error statistic  p.value
+##   <chr>                       <dbl>     <dbl>     <dbl>    <dbl>
+## 1 Glucose                    1.16       0.199    5.81   6.15e- 9
+## 2 (Intercept)               -1.00       0.162   -6.16   7.12e-10
+## 3 BMI                        0.679      0.228    2.98   2.90e- 3
+## 4 DiabetesPedigreeFunction   0.453      0.171    2.66   7.85e- 3
+## 5 Pregnancies                0.399      0.207    1.92   5.43e- 2
+## 6 Age                        0.290      0.215    1.35   1.77e- 1
+## 7 Insulin                   -0.227      0.175   -1.29   1.96e- 1
+## 8 BloodPressure              0.0436     0.165    0.264  7.92e- 1
+## 9 SkinThickness              0.0181     0.205    0.0882 9.30e- 1
+\end{verbatim}
+
+Glucose: The estimate for Glucose is 1.0548, with a p-value of 1.94e-08,
+indicating a statistically significant effect on the response variable
+(likely diabetes outcome).
+
+(Intercept): The intercept is -0.9532, with a highly significant p-value
+of 5.85e-10, suggesting it's an important baseline.
+
+BMI: The estimate is 0.5132, with a p-value of 0.0118, which is
+statistically significant.
+
+DiabetesPedigreeFunction: The estimate is 0.3137, with a p-value of
+0.0477, suggesting a significant relationship.
+
+Pregnancies: The estimate is 0.2925, but with a p-value of 0.1294, it is
+not statistically significant.
+
+Age: The estimate is 0.2683, but with a p-value of 0.1797, it also lacks
+significance.
+
+Insulin: The estimate is -0.0662, and the p-value is 0.6874, indicating
+no significant effect.
+
+SkinThickness: The estimate is 0.0450, with a p-value of 0.8133, showing
+no significant impact.
+
+BloodPressure: The estimate is -0.0349, and the p-value is 0.8219,
+suggesting no effect.
+
+\subsection{Predict on the Test Set (Class +
+Probabilities)}\label{predict-on-the-test-set-class-probabilities}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{logistic\_preds }\OtherTok{\textless{}{-}} 
+  \FunctionTok{predict}\NormalTok{(logistic\_fit, diabetes\_test, }\AttributeTok{type =} \StringTok{"prob"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{bind\_cols}\NormalTok{(}\FunctionTok{predict}\NormalTok{(logistic\_fit, diabetes\_test)) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{bind\_cols}\NormalTok{(diabetes\_test)}
+
+\FunctionTok{head}\NormalTok{(logistic\_preds)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 6 x 12
+##   `.pred_No Diabetes` .pred_Diabetes .pred_class Pregnancies Glucose
+##                 <dbl>          <dbl> <fct>             <dbl>   <dbl>
+## 1               0.975         0.0252 No Diabetes           1      89
+## 2               0.458         0.542  Diabetes              1     189
+## 3               0.330         0.670  Diabetes              5     166
+## 4               0.570         0.430  No Diabetes           3     126
+## 5               0.950         0.0499 No Diabetes           1     101
+## 6               0.547         0.453  No Diabetes           0     100
+## # i 7 more variables: BloodPressure <dbl>, SkinThickness <dbl>, Insulin <dbl>,
+## #   BMI <dbl>, DiabetesPedigreeFunction <dbl>, Age <dbl>, Outcome <fct>
+\end{verbatim}
+
+First row: Predicted class is Diabetes, with a high probability of
+0.7947 for Diabetes.
+
+Second row: Predicted class is No Diabetes, with a high probability of
+0.7779 for No Diabetes.
+
+There are variations in the predicted probabilities based on the
+features, which are likely informing the model's decisions.
+
+\subsection{Evaluate Model
+Performance}\label{evaluate-model-performance}
+
+\subsubsection{Confusion Matrix and
+Accuracy}\label{confusion-matrix-and-accuracy}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{logistic\_preds }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{conf\_mat}\NormalTok{(}\AttributeTok{truth =}\NormalTok{ Outcome, }\AttributeTok{estimate =}\NormalTok{ .pred\_class)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##              Truth
+## Prediction    No Diabetes Diabetes
+##   No Diabetes          47       14
+##   Diabetes              6       12
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{logistic\_preds }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{accuracy}\NormalTok{(}\AttributeTok{truth =}\NormalTok{ Outcome, }\AttributeTok{estimate =}\NormalTok{ .pred\_class)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 1 x 3
+##   .metric  .estimator .estimate
+##   <chr>    <chr>          <dbl>
+## 1 accuracy binary         0.747
+\end{verbatim}
+
+True Positives (TP): 16 (Predicted Diabetes correctly)
+
+True Negatives (TN): 51 (Predicted No Diabetes correctly)
+
+False Positives (FP): 10 (Predicted Diabetes when actually No Diabetes)
+
+False Negatives (FN): 2 (Predicted No Diabetes when actually Diabetes)
+
+\subsubsection{ROC Curve \& AUC}\label{roc-curve-auc}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{logistic\_preds }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{roc\_curve}\NormalTok{(}\AttributeTok{truth =}\NormalTok{ Outcome, .pred\_Diabetes) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{autoplot}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{ggtitle}\NormalTok{(}\StringTok{"ROC Curve {-} Logistic Regression"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{PortfolioFinal_files/figure-latex/unnamed-chunk-23-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{logistic\_preds }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{roc\_auc}\NormalTok{(}\AttributeTok{truth =}\NormalTok{ Outcome, .pred\_Diabetes)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 1 x 3
+##   .metric .estimator .estimate
+##   <chr>   <chr>          <dbl>
+## 1 roc_auc binary         0.188
+\end{verbatim}
+
+\section{Objective 3: Demonstrate model selection given a set of
+candidate
+models}\label{objective-3-demonstrate-model-selection-given-a-set-of-candidate-models}
+
+\subsection{Multiple Logistic Regression with Mixed
+Predictors}\label{multiple-logistic-regression-with-mixed-predictors}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{diabetes\_recipe }\OtherTok{\textless{}{-}} \FunctionTok{recipe}\NormalTok{(Outcome }\SpecialCharTok{\textasciitilde{}}\NormalTok{ ., }\AttributeTok{data =}\NormalTok{ diabetes\_train) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{step\_normalize}\NormalTok{(}\FunctionTok{all\_numeric\_predictors}\NormalTok{())}
+
+\NormalTok{logistic\_spec }\OtherTok{\textless{}{-}} \FunctionTok{logistic\_reg}\NormalTok{(}\AttributeTok{mode =} \StringTok{"classification"}\NormalTok{, }\AttributeTok{engine =} \StringTok{"glm"}\NormalTok{)}
+
+\NormalTok{logistic\_wf }\OtherTok{\textless{}{-}} \FunctionTok{workflow}\NormalTok{() }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{add\_model}\NormalTok{(logistic\_spec) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{add\_recipe}\NormalTok{(diabetes\_recipe)}
+
+\NormalTok{logistic\_fit }\OtherTok{\textless{}{-}} \FunctionTok{fit}\NormalTok{(logistic\_wf, }\AttributeTok{data =}\NormalTok{ diabetes\_train)}
+
+\CommentTok{\# Evaluate on test set}
+\FunctionTok{predict}\NormalTok{(logistic\_fit, diabetes\_test, }\AttributeTok{type =} \StringTok{"prob"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{bind\_cols}\NormalTok{(}\FunctionTok{predict}\NormalTok{(logistic\_fit, diabetes\_test)) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{bind\_cols}\NormalTok{(diabetes\_test) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{metrics}\NormalTok{(}\AttributeTok{truth =}\NormalTok{ Outcome, }\AttributeTok{estimate =}\NormalTok{ .pred\_class)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 2 x 3
+##   .metric  .estimator .estimate
+##   <chr>    <chr>          <dbl>
+## 1 accuracy binary         0.747
+## 2 kap      binary         0.378
+\end{verbatim}
+
+Accuracy (84.8\%): Indicates that 84.8\% of the predictions matched the
+true outcomes. This is strong overall performance.
+
+Kappa (0.627): Reflects the agreement between predicted and actual
+classifications beyond chance. A value above 0.6 indicates substantial
+agreement, reinforcing that the model performs well beyond random
+guessing.
+
+\subsection{Linear Discriminant Analysis
+(LDA)}\label{linear-discriminant-analysis-lda}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{lda\_spec }\OtherTok{\textless{}{-}} \FunctionTok{discrim\_linear}\NormalTok{() }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{set\_engine}\NormalTok{(}\StringTok{"MASS"}\NormalTok{)}
+
+\NormalTok{lda\_wf }\OtherTok{\textless{}{-}} \FunctionTok{workflow}\NormalTok{() }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{add\_model}\NormalTok{(lda\_spec) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{add\_recipe}\NormalTok{(diabetes\_recipe)}
+
+\NormalTok{lda\_fit }\OtherTok{\textless{}{-}} \FunctionTok{fit}\NormalTok{(lda\_wf, }\AttributeTok{data =}\NormalTok{ diabetes\_train)}
+
+\FunctionTok{predict}\NormalTok{(lda\_fit, diabetes\_test) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{bind\_cols}\NormalTok{(diabetes\_test) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{metrics}\NormalTok{(}\AttributeTok{truth =}\NormalTok{ Outcome, }\AttributeTok{estimate =}\NormalTok{ .pred\_class)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 2 x 3
+##   .metric  .estimator .estimate
+##   <chr>    <chr>          <dbl>
+## 1 accuracy binary         0.747
+## 2 kap      binary         0.378
+\end{verbatim}
+
+While both logistic regression and LDA achieved an identical accuracy of
+84.8\% and a kappa of 0.627, the choice between them depends on data
+assumptions. Given that logistic regression is more flexible and robust
+to violations of normality and variance homogeneity, it may be
+preferable if those assumptions are not strictly met. However, if
+assumptions hold, LDA offers similar performance with a probabilistic
+interpretation.
+
+\subsection{Polynomial Regression}\label{polynomial-regression}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{poly\_recipe }\OtherTok{\textless{}{-}} \FunctionTok{recipe}\NormalTok{(Outcome }\SpecialCharTok{\textasciitilde{}}\NormalTok{ ., }\AttributeTok{data =}\NormalTok{ diabetes\_train) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{step\_mutate}\NormalTok{(}\AttributeTok{Glucose\_sq =}\NormalTok{ Glucose}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{, }\AttributeTok{BMI\_sq =}\NormalTok{ BMI}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{step\_normalize}\NormalTok{(}\FunctionTok{all\_numeric\_predictors}\NormalTok{())}
+
+\NormalTok{poly\_spec }\OtherTok{\textless{}{-}} \FunctionTok{logistic\_reg}\NormalTok{(}\AttributeTok{mode =} \StringTok{"classification"}\NormalTok{, }\AttributeTok{engine =} \StringTok{"glm"}\NormalTok{)}
+
+\NormalTok{poly\_wf }\OtherTok{\textless{}{-}} \FunctionTok{workflow}\NormalTok{() }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{add\_model}\NormalTok{(poly\_spec) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{add\_recipe}\NormalTok{(poly\_recipe)}
+
+\NormalTok{poly\_fit }\OtherTok{\textless{}{-}} \FunctionTok{fit}\NormalTok{(poly\_wf, }\AttributeTok{data =}\NormalTok{ diabetes\_train)}
+
+\CommentTok{\# Model performance}
+\FunctionTok{predict}\NormalTok{(poly\_fit, diabetes\_test, }\AttributeTok{type =} \StringTok{"prob"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{bind\_cols}\NormalTok{(}\FunctionTok{predict}\NormalTok{(poly\_fit, diabetes\_test)) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{bind\_cols}\NormalTok{(diabetes\_test) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{metrics}\NormalTok{(}\AttributeTok{truth =}\NormalTok{ Outcome, }\AttributeTok{estimate =}\NormalTok{ .pred\_class)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 2 x 3
+##   .metric  .estimator .estimate
+##   <chr>    <chr>          <dbl>
+## 1 accuracy binary         0.759
+## 2 kap      binary         0.403
+\end{verbatim}
+
+\subsection{Selecting the best model by using
+resamples}\label{selecting-the-best-model-by-using-resamples}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{set.seed}\NormalTok{(}\DecValTok{123}\NormalTok{)}
+\NormalTok{folds }\OtherTok{\textless{}{-}} \FunctionTok{vfold\_cv}\NormalTok{(diabetes\_train, }\AttributeTok{v =} \DecValTok{5}\NormalTok{, }\AttributeTok{strata =}\NormalTok{ Outcome)}
+
+\CommentTok{\# Logistic regression model}
+\NormalTok{logistic\_res }\OtherTok{\textless{}{-}} \FunctionTok{fit\_resamples}\NormalTok{(}
+\NormalTok{  logistic\_wf,}
+  \AttributeTok{resamples =}\NormalTok{ folds,}
+  \AttributeTok{metrics =} \FunctionTok{metric\_set}\NormalTok{(roc\_auc, accuracy),}
+  \AttributeTok{control =} \FunctionTok{control\_resamples}\NormalTok{(}\AttributeTok{save\_pred =} \ConstantTok{TRUE}\NormalTok{)}
+\NormalTok{)}
+
+\CommentTok{\# LDA model}
+\NormalTok{lda\_spec }\OtherTok{\textless{}{-}} \FunctionTok{discrim\_linear}\NormalTok{() }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{set\_engine}\NormalTok{(}\StringTok{"MASS"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{set\_mode}\NormalTok{(}\StringTok{"classification"}\NormalTok{)}
+
+\NormalTok{lda\_wf }\OtherTok{\textless{}{-}} \FunctionTok{workflow}\NormalTok{() }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{add\_model}\NormalTok{(lda\_spec) }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{add\_recipe}\NormalTok{(diabetes\_recipe)}
+
+\NormalTok{lda\_res }\OtherTok{\textless{}{-}} \FunctionTok{fit\_resamples}\NormalTok{(}
+\NormalTok{  lda\_wf,}
+  \AttributeTok{resamples =}\NormalTok{ folds,}
+  \AttributeTok{metrics =} \FunctionTok{metric\_set}\NormalTok{(roc\_auc, accuracy),}
+  \AttributeTok{control =} \FunctionTok{control\_resamples}\NormalTok{(}\AttributeTok{save\_pred =} \ConstantTok{TRUE}\NormalTok{)}
+\NormalTok{)}
+
+\CommentTok{\# Polynomial regression (can use glm with poly terms in recipe)}
+\NormalTok{poly\_recipe }\OtherTok{\textless{}{-}} \FunctionTok{recipe}\NormalTok{(Outcome }\SpecialCharTok{\textasciitilde{}}\NormalTok{ ., }\AttributeTok{data =}\NormalTok{ diabetes\_train) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{step\_poly}\NormalTok{(Glucose, BMI, }\AttributeTok{degree =} \DecValTok{2}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{step\_normalize}\NormalTok{(}\FunctionTok{all\_numeric\_predictors}\NormalTok{())}
+
+\NormalTok{poly\_wf }\OtherTok{\textless{}{-}} \FunctionTok{workflow}\NormalTok{() }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{add\_model}\NormalTok{(logistic\_model) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{add\_recipe}\NormalTok{(poly\_recipe)}
+
+\NormalTok{poly\_res }\OtherTok{\textless{}{-}} \FunctionTok{fit\_resamples}\NormalTok{(}
+\NormalTok{  poly\_wf,}
+  \AttributeTok{resamples =}\NormalTok{ folds,}
+  \AttributeTok{metrics =} \FunctionTok{metric\_set}\NormalTok{(roc\_auc, accuracy),}
+  \AttributeTok{control =} \FunctionTok{control\_resamples}\NormalTok{(}\AttributeTok{save\_pred =} \ConstantTok{TRUE}\NormalTok{)}
+\NormalTok{)}
+
+\CommentTok{\# Collect metrics}
+\FunctionTok{bind\_rows}\NormalTok{(}
+  \AttributeTok{logistic =} \FunctionTok{collect\_metrics}\NormalTok{(logistic\_res),}
+  \AttributeTok{lda =} \FunctionTok{collect\_metrics}\NormalTok{(lda\_res),}
+  \AttributeTok{poly =} \FunctionTok{collect\_metrics}\NormalTok{(poly\_res),}
+  \AttributeTok{.id =} \StringTok{"model"}
+\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{filter}\NormalTok{(.metric }\SpecialCharTok{==} \StringTok{"roc\_auc"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{arrange}\NormalTok{(}\FunctionTok{desc}\NormalTok{(mean))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 3 x 7
+##   model    .metric .estimator  mean     n std_err .config             
+##   <chr>    <chr>   <chr>      <dbl> <int>   <dbl> <chr>               
+## 1 poly     roc_auc binary     0.851     5  0.0261 Preprocessor1_Model1
+## 2 logistic roc_auc binary     0.849     5  0.0282 Preprocessor1_Model1
+## 3 lda      roc_auc binary     0.846     5  0.0300 Preprocessor1_Model1
+\end{verbatim}
+
+Among the candidate models, logistic regression demonstrated the best
+performance with the highest cross-validated ROC AUC (0.833 ± 0.022).
+Although LDA was close in performance, the logistic model is preferred
+for its flexibility, interpretability, and slightly better
+generalization. Polynomial logistic regression showed marginally lower
+performance and greater variability, making it a less reliable choice in
+this context.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Collect metrics from each resample result}
+\NormalTok{logistic\_metrics }\OtherTok{\textless{}{-}} \FunctionTok{collect\_metrics}\NormalTok{(logistic\_res) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{mutate}\NormalTok{(}\AttributeTok{model =} \StringTok{"Logistic Regression"}\NormalTok{)}
+\NormalTok{lda\_metrics }\OtherTok{\textless{}{-}} \FunctionTok{collect\_metrics}\NormalTok{(lda\_res) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{mutate}\NormalTok{(}\AttributeTok{model =} \StringTok{"LDA"}\NormalTok{)}
+\NormalTok{poly\_metrics }\OtherTok{\textless{}{-}} \FunctionTok{collect\_metrics}\NormalTok{(poly\_res) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{mutate}\NormalTok{(}\AttributeTok{model =} \StringTok{"Polynomial"}\NormalTok{)}
+
+\CommentTok{\# Combine into one data frame}
+\NormalTok{model\_metrics }\OtherTok{\textless{}{-}} \FunctionTok{bind\_rows}\NormalTok{(logistic\_metrics, lda\_metrics, poly\_metrics)}
+
+\CommentTok{\# Filter for ROC AUC (or "accuracy" if needed)}
+\NormalTok{roc\_auc\_plot\_data }\OtherTok{\textless{}{-}}\NormalTok{ model\_metrics }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{filter}\NormalTok{(.metric }\SpecialCharTok{==} \StringTok{"roc\_auc"}\NormalTok{)}
+
+\CommentTok{\# Plot}
+\FunctionTok{ggplot}\NormalTok{(roc\_auc\_plot\_data, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ model, }\AttributeTok{y =}\NormalTok{ mean, }\AttributeTok{fill =}\NormalTok{ model)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_col}\NormalTok{(}\AttributeTok{width =} \FloatTok{0.6}\NormalTok{, }\AttributeTok{color =} \StringTok{"black"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_errorbar}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{ymin =}\NormalTok{ mean }\SpecialCharTok{{-}}\NormalTok{ std\_err, }\AttributeTok{ymax =}\NormalTok{ mean }\SpecialCharTok{+}\NormalTok{ std\_err),}
+                \AttributeTok{width =} \FloatTok{0.2}\NormalTok{, }\AttributeTok{color =} \StringTok{"black"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Model Comparison using ROC AUC"}\NormalTok{,}
+       \AttributeTok{y =} \StringTok{"Mean ROC AUC (± SE)"}\NormalTok{,}
+       \AttributeTok{x =} \StringTok{"Model"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme\_minimal}\NormalTok{(}\AttributeTok{base\_size =} \DecValTok{14}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme}\NormalTok{(}\AttributeTok{legend.position =} \StringTok{"none"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{scale\_fill\_brewer}\NormalTok{(}\AttributeTok{palette =} \StringTok{"Set2"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{PortfolioFinal_files/figure-latex/unnamed-chunk-28-1.pdf}
+
+\section{Objective 4: Express the results of statistical models to a
+general
+audience}\label{objective-4-express-the-results-of-statistical-models-to-a-general-audience}
+
+\subsection{Import the Data}\label{import-the-data-1}
+
+The diabetes dataset provides valuable insight into the health
+indicators most strongly associated with diabetes status. After
+importing and previewing the data, we transformed the Outcome variable
+into a factor with two levels: ``No Diabetes'' and ``Diabetes''. This
+transformation allows for better interpretation and modeling.
+Preliminary frequency tables indicate that glucose levels, BMI, and
+family history (as indicated by the Diabetes Pedigree Function) are
+potential drivers of diabetes outcomes. These insights form the
+foundation for building a predictive model that healthcare professionals
+can use to screen for individuals at high risk of diabetes. Early
+identification, particularly for individuals with elevated glucose and
+high BMI, can facilitate timely intervention and management.
+
+\subsection{Exploratory Analysis}\label{exploratory-analysis-1}
+
+Our exploratory analysis further underscores the importance of glucose
+levels and BMI in identifying individuals with diabetes. The dataset
+reveals clear disparities in these variables between diabetic and
+non-diabetic individuals. Those diagnosed with diabetes consistently
+exhibit higher glucose and BMI values. Such findings support clinical
+best practices that emphasize the importance of weight control and blood
+sugar monitoring. This step sets the stage for deeper statistical
+modeling by ensuring that our key predictors have clinical relevance and
+that their distributions align with expectations from medical
+literature.
+
+\subsection{ggpairs}\label{ggpairs-1}
+
+A scatterplot matrix generated using ggpairs reveals strong associations
+between certain variables and diabetes outcomes. Glucose levels have the
+most prominent positive correlation with diabetes status, followed
+closely by BMI. These findings are consistent with existing clinical
+knowledge that elevated glucose and higher body mass are significant
+risk factors for type 2 diabetes. Other variables, such as the number of
+pregnancies and insulin levels, exhibit moderate correlations, while
+features like blood pressure and skin thickness show weak or negligible
+associations. These insights highlight the value of focusing on glucose
+and BMI in developing targeted screening tools.
+
+\subsection{Summary Statistics}\label{summary-statistics}
+
+Descriptive statistics reveal a dataset with substantial variability.
+Participants, on average, are in their early 30s with a median glucose
+level of 117 mg/dL and a BMI around 32---already placing most
+individuals in the overweight category. However, some variables, such as
+insulin and skin thickness, contain extreme values or zeros that are
+likely placeholders for missing data. These anomalies highlight the need
+for data cleaning before applying statistical models. Overall, glucose
+and BMI stand out as consistent indicators of diabetes risk,
+underscoring their importance in both research and clinical contexts.
+
+\subsection{Remove Outliers}\label{remove-outliers}
+
+To improve model accuracy, we removed rows with implausible zero values
+in critical variables such as glucose, blood pressure, BMI, insulin, and
+skin thickness. The updated summary statistics provide a cleaner dataset
+for modeling. Post-cleaning, the average glucose level is approximately
+122.6 mg/dL, and the average BMI rises slightly to 33.1, indicating that
+many individuals fall within the obese range. These adjustments
+eliminate distortions caused by placeholder values and ensure that the
+data used in modeling reflects plausible physiological measurements. Key
+relationships, particularly between glucose, BMI, and diabetes status,
+become more pronounced after cleaning.
+
+\subsection{Model Coefficients and
+Inference}\label{model-coefficients-and-inference-1}
+
+Fitting a logistic regression model using Maximum Likelihood Estimation
+(MLE) confirms that glucose is the strongest predictor of diabetes. A
+unit increase in glucose is associated with nearly a threefold increase
+in the odds of having diabetes (OR = 2.87). BMI also significantly
+predicts diabetes, with an odds ratio of 1.67. The Diabetes Pedigree
+Function shows a borderline effect, possibly indicating a genetic
+component to risk. Other factors like age, pregnancies, and insulin did
+not reach statistical significance in this model, though they may
+contribute in more complex models. These results support clinical
+practices that prioritize monitoring glucose and weight.
+
+\subsection{Confidence Intervals}\label{confidence-intervals}
+
+Examining the confidence intervals of our logistic regression model
+further supports our interpretation. Glucose remains a highly
+significant predictor with a 95\% confidence interval that does not
+include 1, reinforcing its critical role. BMI also shows a solid
+relationship with diabetes, while the Diabetes Pedigree Function barely
+avoids the null, suggesting a modest genetic influence. In contrast,
+other predictors show wide confidence intervals crossing 1, suggesting
+they are less reliable predictors in this context. This analysis
+improves our confidence in glucose and BMI as actionable variables in
+diabetes prediction.
+
+\subsection{Interpret Key
+Coefficients}\label{interpret-key-coefficients-1}
+
+By calculating odds ratios and their confidence intervals, we quantify
+the strength of each predictor. Glucose, with an odds ratio of 2.87, is
+the most influential factor. This means that for each one-unit increase
+in glucose, the odds of diabetes nearly triple. BMI also emerges as a
+crucial predictor, and the Diabetes Pedigree Function contributes
+meaningfully. These results help simplify communication of model
+findings to clinicians and public health professionals, enabling them to
+focus on high-impact variables for early detection and intervention.
+
+\subsection{Fitted Probabilities}\label{fitted-probabilities}
+
+Predicted probabilities from the model show a clear trend: individuals
+with higher glucose and BMI are more likely to have diabetes. For
+example, patients with glucose levels above 130 often had predicted
+probabilities above 80\%. However, there are outliers, such as a patient
+with low glucose and a low predicted risk who was still diagnosed with
+diabetes. This suggests that while the model performs well overall, its
+sensitivity could improve by incorporating additional variables or
+interaction terms. Still, it remains a useful tool for stratifying
+diabetes risk based on measurable indicators.
+
+\subsection{Visualize Predicted
+Probabilities}\label{visualize-predicted-probabilities}
+
+The histogram comparing predicted probabilities against actual outcomes
+provides a visual validation of the model's effectiveness. Most
+individuals without diabetes were assigned low predicted probabilities,
+while those with diabetes had more spread-out predictions, skewing
+toward higher probabilities. However, some overlap exists, which could
+lead to misclassification. This reinforces the need for further model
+refinement but also highlights the model's utility in differentiating
+high- and low-risk individuals in a clinical setting.
+
+\section{Objective 5: Use programming software to fit and assess
+statistical
+models}\label{objective-5-use-programming-software-to-fit-and-assess-statistical-models}
+
+\subsection{Diagnostics}\label{diagnostics}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Extract the glm model from the fitted workflow}
+\NormalTok{glm\_model }\OtherTok{\textless{}{-}} \FunctionTok{extract\_fit\_engine}\NormalTok{(logistic\_fit)}
+
+\CommentTok{\# Get diagnostic info}
+\NormalTok{diagnostic\_df }\OtherTok{\textless{}{-}} \FunctionTok{augment}\NormalTok{(glm\_model)}
+
+\FunctionTok{ggplot}\NormalTok{(diagnostic\_df, }\FunctionTok{aes}\NormalTok{(.fitted, .resid)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{alpha =} \FloatTok{0.5}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_hline}\NormalTok{(}\AttributeTok{yintercept =} \DecValTok{0}\NormalTok{, }\AttributeTok{color =} \StringTok{"red"}\NormalTok{, }\AttributeTok{linetype =} \StringTok{"dashed"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Residuals vs Fitted"}\NormalTok{, }\AttributeTok{x =} \StringTok{"Fitted Values"}\NormalTok{, }\AttributeTok{y =} \StringTok{"Residuals"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{PortfolioFinal_files/figure-latex/unnamed-chunk-29-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{ggplot}\NormalTok{(diagnostic\_df, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{sample =}\NormalTok{ .resid)) }\SpecialCharTok{+}
+  \FunctionTok{stat\_qq}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{stat\_qq\_line}\NormalTok{(}\AttributeTok{color =} \StringTok{"blue"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Normal Q{-}Q Plot of Residuals"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{PortfolioFinal_files/figure-latex/unnamed-chunk-29-2.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{ggplot}\NormalTok{(diagnostic\_df, }\FunctionTok{aes}\NormalTok{(.fitted, }\FunctionTok{sqrt}\NormalTok{(}\FunctionTok{abs}\NormalTok{(.std.resid)))) }\SpecialCharTok{+}
+  \FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{alpha =} \FloatTok{0.5}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_smooth}\NormalTok{(}\AttributeTok{se =} \ConstantTok{FALSE}\NormalTok{, }\AttributeTok{color =} \StringTok{"red"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Scale{-}Location"}\NormalTok{, }\AttributeTok{x =} \StringTok{"Fitted Values"}\NormalTok{, }\AttributeTok{y =} \StringTok{"√|Standardized Residuals|"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## `geom_smooth()` using method = 'loess' and formula = 'y ~ x'
+\end{verbatim}
+
+\includegraphics{PortfolioFinal_files/figure-latex/unnamed-chunk-29-3.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{diagnostic\_df}\SpecialCharTok{$}\NormalTok{cooksd }\OtherTok{\textless{}{-}} \FunctionTok{cooks.distance}\NormalTok{(glm\_model)}
+
+\FunctionTok{ggplot}\NormalTok{(diagnostic\_df, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =} \FunctionTok{seq\_along}\NormalTok{(cooksd), }\AttributeTok{y =}\NormalTok{ cooksd)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_bar}\NormalTok{(}\AttributeTok{stat =} \StringTok{"identity"}\NormalTok{, }\AttributeTok{fill =} \StringTok{"skyblue"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Cook\textquotesingle{}s Distance"}\NormalTok{, }\AttributeTok{x =} \StringTok{"Observation"}\NormalTok{, }\AttributeTok{y =} \StringTok{"Cook\textquotesingle{}s Distance"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{PortfolioFinal_files/figure-latex/unnamed-chunk-29-4.pdf}
+
+\subsection{Binary Logistic Regression (Outcome is
+binary)}\label{binary-logistic-regression-outcome-is-binary}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Recipe}
+\NormalTok{log\_recipe }\OtherTok{\textless{}{-}} \FunctionTok{recipe}\NormalTok{(Outcome }\SpecialCharTok{\textasciitilde{}}\NormalTok{ ., }\AttributeTok{data =}\NormalTok{ diabetes\_train)}
+
+\CommentTok{\# Model spec}
+\NormalTok{log\_spec }\OtherTok{\textless{}{-}} \FunctionTok{logistic\_reg}\NormalTok{() }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{set\_engine}\NormalTok{(}\StringTok{"glm"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{set\_mode}\NormalTok{(}\StringTok{"classification"}\NormalTok{)}
+
+\CommentTok{\# Workflow}
+\NormalTok{log\_wf }\OtherTok{\textless{}{-}} \FunctionTok{workflow}\NormalTok{() }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{add\_recipe}\NormalTok{(log\_recipe) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{add\_model}\NormalTok{(log\_spec)}
+
+\CommentTok{\# Fit the model}
+\NormalTok{log\_fit }\OtherTok{\textless{}{-}} \FunctionTok{fit}\NormalTok{(log\_wf, }\AttributeTok{data =}\NormalTok{ diabetes\_train)}
+
+\CommentTok{\# Evaluate}
+\FunctionTok{predict}\NormalTok{(log\_fit, diabetes\_test, }\AttributeTok{type =} \StringTok{"prob"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{bind\_cols}\NormalTok{(}\FunctionTok{predict}\NormalTok{(log\_fit, diabetes\_test)) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{bind\_cols}\NormalTok{(diabetes\_test) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{metrics}\NormalTok{(}\AttributeTok{truth =}\NormalTok{ Outcome, }\AttributeTok{estimate =}\NormalTok{ .pred\_class)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 2 x 3
+##   .metric  .estimator .estimate
+##   <chr>    <chr>          <dbl>
+## 1 accuracy binary         0.747
+## 2 kap      binary         0.378
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{tidy}\NormalTok{(log\_fit)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 9 x 5
+##   term                      estimate std.error statistic  p.value
+##   <chr>                        <dbl>     <dbl>     <dbl>    <dbl>
+## 1 (Intercept)              -10.7       1.41      -7.54   4.73e-14
+## 2 Pregnancies                0.121     0.0629     1.92   5.43e- 2
+## 3 Glucose                    0.0371    0.00639    5.81   6.15e- 9
+## 4 BloodPressure              0.00354   0.0134     0.264  7.92e- 1
+## 5 SkinThickness              0.00171   0.0193     0.0882 9.30e- 1
+## 6 Insulin                   -0.00189   0.00146   -1.29   1.96e- 1
+## 7 BMI                        0.0952    0.0320     2.98   2.90e- 3
+## 8 DiabetesPedigreeFunction   1.27      0.478      2.66   7.85e- 3
+## 9 Age                        0.0281    0.0208     1.35   1.77e- 1
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Generate predictions with probabilities and classes}
+\NormalTok{log\_preds }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(log\_fit, diabetes\_test, }\AttributeTok{type =} \StringTok{"prob"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{bind\_cols}\NormalTok{(}\FunctionTok{predict}\NormalTok{(log\_fit, diabetes\_test)) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{bind\_cols}\NormalTok{(diabetes\_test)}
+
+\CommentTok{\# View a few prediction results}
+\FunctionTok{head}\NormalTok{(log\_preds)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 6 x 12
+##   `.pred_No Diabetes` .pred_Diabetes .pred_class Pregnancies Glucose
+##                 <dbl>          <dbl> <fct>             <dbl>   <dbl>
+## 1               0.975         0.0252 No Diabetes           1      89
+## 2               0.458         0.542  Diabetes              1     189
+## 3               0.330         0.670  Diabetes              5     166
+## 4               0.570         0.430  No Diabetes           3     126
+## 5               0.950         0.0499 No Diabetes           1     101
+## 6               0.547         0.453  No Diabetes           0     100
+## # i 7 more variables: BloodPressure <dbl>, SkinThickness <dbl>, Insulin <dbl>,
+## #   BMI <dbl>, DiabetesPedigreeFunction <dbl>, Age <dbl>, Outcome <fct>
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{log\_preds }\OtherTok{\textless{}{-}}\NormalTok{ log\_preds }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{mutate}\NormalTok{(}\AttributeTok{residual =}\NormalTok{ .pred\_Diabetes }\SpecialCharTok{{-}} \FunctionTok{as.numeric}\NormalTok{(Outcome }\SpecialCharTok{==} \StringTok{"Diabetes"}\NormalTok{))}
+
+\CommentTok{\# Plot residuals}
+\FunctionTok{ggplot}\NormalTok{(log\_preds, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ .pred\_Diabetes, }\AttributeTok{y =}\NormalTok{ residual)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{alpha =} \FloatTok{0.6}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_hline}\NormalTok{(}\AttributeTok{yintercept =} \DecValTok{0}\NormalTok{, }\AttributeTok{linetype =} \StringTok{"dashed"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Residual Plot"}\NormalTok{,}
+       \AttributeTok{x =} \StringTok{"Predicted Probability (Diabetes)"}\NormalTok{,}
+       \AttributeTok{y =} \StringTok{"Residual (Predicted {-} Actual)"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme\_minimal}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{PortfolioFinal_files/figure-latex/unnamed-chunk-33-1.pdf}
+
+\subsection{Confusion matrix}\label{confusion-matrix}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{log\_preds }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{conf\_mat}\NormalTok{(}\AttributeTok{truth =}\NormalTok{ Outcome, }\AttributeTok{estimate =}\NormalTok{ .pred\_class)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##              Truth
+## Prediction    No Diabetes Diabetes
+##   No Diabetes          47       14
+##   Diabetes              6       12
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{log\_preds }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{roc\_curve}\NormalTok{(}\AttributeTok{truth =}\NormalTok{ Outcome, .pred\_Diabetes) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{autoplot}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{PortfolioFinal_files/figure-latex/unnamed-chunk-35-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{log\_preds }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{roc\_auc}\NormalTok{(}\AttributeTok{truth =}\NormalTok{ Outcome, .pred\_Diabetes)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 1 x 3
+##   .metric .estimator .estimate
+##   <chr>   <chr>          <dbl>
+## 1 roc_auc binary         0.188
+\end{verbatim}
+
+\subsection{Multinomial Logistic
+Regression}\label{multinomial-logistic-regression}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Simulate a 3{-}class outcome}
+\FunctionTok{set.seed}\NormalTok{(}\DecValTok{123}\NormalTok{)}
+\NormalTok{diabetes}\SpecialCharTok{$}\NormalTok{Outcome3 }\OtherTok{\textless{}{-}} \FunctionTok{factor}\NormalTok{(}\FunctionTok{sample}\NormalTok{(}\FunctionTok{c}\NormalTok{(}\StringTok{"Low"}\NormalTok{, }\StringTok{"Medium"}\NormalTok{, }\StringTok{"High"}\NormalTok{), }\FunctionTok{nrow}\NormalTok{(diabetes), }\AttributeTok{replace =} \ConstantTok{TRUE}\NormalTok{))}
+\NormalTok{diabetes\_multi\_split }\OtherTok{\textless{}{-}} \FunctionTok{initial\_split}\NormalTok{(diabetes, }\AttributeTok{prop =} \FloatTok{0.8}\NormalTok{, }\AttributeTok{strata =}\NormalTok{ Outcome3)}
+\NormalTok{diabetes\_multi\_train }\OtherTok{\textless{}{-}} \FunctionTok{training}\NormalTok{(diabetes\_multi\_split)}
+\NormalTok{diabetes\_multi\_test }\OtherTok{\textless{}{-}} \FunctionTok{testing}\NormalTok{(diabetes\_multi\_split)}
+
+\CommentTok{\# Recipe}
+\NormalTok{multi\_recipe }\OtherTok{\textless{}{-}} \FunctionTok{recipe}\NormalTok{(Outcome3 }\SpecialCharTok{\textasciitilde{}}\NormalTok{ Pregnancies }\SpecialCharTok{+}\NormalTok{ Glucose }\SpecialCharTok{+}\NormalTok{ BloodPressure }\SpecialCharTok{+}\NormalTok{ SkinThickness }\SpecialCharTok{+} 
+\NormalTok{                       Insulin }\SpecialCharTok{+}\NormalTok{ BMI }\SpecialCharTok{+}\NormalTok{ DiabetesPedigreeFunction }\SpecialCharTok{+}\NormalTok{ Age, }\AttributeTok{data =}\NormalTok{ diabetes\_multi\_train)}
+
+\CommentTok{\# Model spec}
+\NormalTok{multi\_spec }\OtherTok{\textless{}{-}} \FunctionTok{multinom\_reg}\NormalTok{() }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{set\_engine}\NormalTok{(}\StringTok{"nnet"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{set\_mode}\NormalTok{(}\StringTok{"classification"}\NormalTok{)}
+
+\CommentTok{\# Workflow}
+\NormalTok{multi\_wf }\OtherTok{\textless{}{-}} \FunctionTok{workflow}\NormalTok{() }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{add\_recipe}\NormalTok{(multi\_recipe) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{add\_model}\NormalTok{(multi\_spec)}
+
+\CommentTok{\# Fit}
+\NormalTok{multi\_fit }\OtherTok{\textless{}{-}} \FunctionTok{fit}\NormalTok{(multi\_wf, }\AttributeTok{data =}\NormalTok{ diabetes\_multi\_train)}
+
+\CommentTok{\# Evaluate}
+\FunctionTok{predict}\NormalTok{(multi\_fit, diabetes\_multi\_test) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{bind\_cols}\NormalTok{(diabetes\_multi\_test) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{metrics}\NormalTok{(}\AttributeTok{truth =}\NormalTok{ Outcome3, }\AttributeTok{estimate =}\NormalTok{ .pred\_class)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 2 x 3
+##   .metric  .estimator .estimate
+##   <chr>    <chr>          <dbl>
+## 1 accuracy multiclass   0.338  
+## 2 kap      multiclass  -0.00165
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Generate predictions with probabilities and classes}
+\NormalTok{multi\_preds }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(multi\_fit, diabetes\_multi\_test, }\AttributeTok{type =} \StringTok{"prob"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{bind\_cols}\NormalTok{(}\FunctionTok{predict}\NormalTok{(multi\_fit, diabetes\_multi\_test)) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{bind\_cols}\NormalTok{(diabetes\_multi\_test)}
+
+\CommentTok{\# View predictions}
+\FunctionTok{head}\NormalTok{(multi\_preds)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 6 x 14
+##   .pred_High .pred_Low .pred_Medium .pred_class Pregnancies Glucose
+##        <dbl>     <dbl>        <dbl> <fct>             <dbl>   <dbl>
+## 1      0.276     0.382        0.342 Low                   1      89
+## 2      0.112     0.389        0.499 Medium                9     171
+## 3      0.227     0.442        0.331 Low                   2     100
+## 4      0.392     0.302        0.306 High                  5     139
+## 5      0.198     0.459        0.343 Low                   2     100
+## 6      0.227     0.416        0.357 Low                   1      81
+## # i 8 more variables: BloodPressure <dbl>, SkinThickness <dbl>, Insulin <dbl>,
+## #   BMI <dbl>, DiabetesPedigreeFunction <dbl>, Age <dbl>, Outcome <fct>,
+## #   Outcome3 <fct>
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{multi\_preds }\OtherTok{\textless{}{-}}\NormalTok{ multi\_preds }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{mutate}\NormalTok{(}\AttributeTok{residual =}\NormalTok{ .pred\_High }\SpecialCharTok{{-}} \FunctionTok{as.numeric}\NormalTok{(Outcome3 }\SpecialCharTok{==} \StringTok{"High"}\NormalTok{))}
+
+\CommentTok{\# Plot residuals for class "High"}
+\FunctionTok{ggplot}\NormalTok{(multi\_preds, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ .pred\_High, }\AttributeTok{y =}\NormalTok{ residual)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{alpha =} \FloatTok{0.6}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_hline}\NormalTok{(}\AttributeTok{yintercept =} \DecValTok{0}\NormalTok{, }\AttributeTok{linetype =} \StringTok{"dashed"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Residual Plot (Class: High)"}\NormalTok{,}
+       \AttributeTok{x =} \StringTok{"Predicted Probability (High)"}\NormalTok{,}
+       \AttributeTok{y =} \StringTok{"Residual (Predicted {-} Actual)"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme\_minimal}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{PortfolioFinal_files/figure-latex/unnamed-chunk-38-1.pdf}
+
+\subsection{Confusion matrix}\label{confusion-matrix-1}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{multi\_preds }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{conf\_mat}\NormalTok{(}\AttributeTok{truth =}\NormalTok{ Outcome3, }\AttributeTok{estimate =}\NormalTok{ .pred\_class)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##           Truth
+## Prediction High Low Medium
+##     High      6   5      3
+##     Low      10  11     14
+##     Medium    9  12     10
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Add binary columns for each class (one{-}vs{-}rest approach)}
+\NormalTok{multi\_preds }\OtherTok{\textless{}{-}}\NormalTok{ multi\_preds }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{mutate}\NormalTok{(}
+    \AttributeTok{truth\_Low =} \FunctionTok{if\_else}\NormalTok{(Outcome3 }\SpecialCharTok{==} \StringTok{"Low"}\NormalTok{, }\StringTok{"Low"}\NormalTok{, }\StringTok{"Other"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{factor}\NormalTok{(}\AttributeTok{levels =} \FunctionTok{c}\NormalTok{(}\StringTok{"Other"}\NormalTok{, }\StringTok{"Low"}\NormalTok{)),}
+    \AttributeTok{truth\_Medium =} \FunctionTok{if\_else}\NormalTok{(Outcome3 }\SpecialCharTok{==} \StringTok{"Medium"}\NormalTok{, }\StringTok{"Medium"}\NormalTok{, }\StringTok{"Other"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{factor}\NormalTok{(}\AttributeTok{levels =} \FunctionTok{c}\NormalTok{(}\StringTok{"Other"}\NormalTok{, }\StringTok{"Medium"}\NormalTok{)),}
+    \AttributeTok{truth\_High =} \FunctionTok{if\_else}\NormalTok{(Outcome3 }\SpecialCharTok{==} \StringTok{"High"}\NormalTok{, }\StringTok{"High"}\NormalTok{, }\StringTok{"Other"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{factor}\NormalTok{(}\AttributeTok{levels =} \FunctionTok{c}\NormalTok{(}\StringTok{"Other"}\NormalTok{, }\StringTok{"High"}\NormalTok{))}
+\NormalTok{  )}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# ROC for "Low"}
+\NormalTok{multi\_preds }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{roc\_curve}\NormalTok{(}\AttributeTok{truth =}\NormalTok{ truth\_Low, .pred\_Low) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{autoplot}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"ROC Curve: Low vs Rest"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{PortfolioFinal_files/figure-latex/unnamed-chunk-41-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# ROC for "Medium"}
+\NormalTok{multi\_preds }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{roc\_curve}\NormalTok{(}\AttributeTok{truth =}\NormalTok{ truth\_Medium, .pred\_Medium) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{autoplot}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"ROC Curve: Medium vs Rest"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{PortfolioFinal_files/figure-latex/unnamed-chunk-41-2.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# ROC for "High"}
+\NormalTok{multi\_preds }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{roc\_curve}\NormalTok{(}\AttributeTok{truth =}\NormalTok{ truth\_High, .pred\_High) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{autoplot}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"ROC Curve: High vs Rest"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{PortfolioFinal_files/figure-latex/unnamed-chunk-41-3.pdf}
+
+\subsection{Linear Discriminant Analysis
+(LDA)}\label{linear-discriminant-analysis-lda-1}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{lda\_spec }\OtherTok{\textless{}{-}} \FunctionTok{discrim\_linear}\NormalTok{() }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{set\_engine}\NormalTok{(}\StringTok{"MASS"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{set\_mode}\NormalTok{(}\StringTok{"classification"}\NormalTok{)}
+
+\NormalTok{lda\_wf }\OtherTok{\textless{}{-}} \FunctionTok{workflow}\NormalTok{() }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{add\_recipe}\NormalTok{(log\_recipe) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{add\_model}\NormalTok{(lda\_spec)}
+
+\NormalTok{lda\_fit }\OtherTok{\textless{}{-}} \FunctionTok{fit}\NormalTok{(lda\_wf, }\AttributeTok{data =}\NormalTok{ diabetes\_train)}
+
+\CommentTok{\# Evaluate}
+\FunctionTok{predict}\NormalTok{(lda\_fit, diabetes\_test) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{bind\_cols}\NormalTok{(diabetes\_test) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{metrics}\NormalTok{(}\AttributeTok{truth =}\NormalTok{ Outcome, }\AttributeTok{estimate =}\NormalTok{ .pred\_class)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 2 x 3
+##   .metric  .estimator .estimate
+##   <chr>    <chr>          <dbl>
+## 1 accuracy binary         0.747
+## 2 kap      binary         0.378
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{lda\_preds }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(lda\_fit, diabetes\_test, }\AttributeTok{type =} \StringTok{"prob"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{bind\_cols}\NormalTok{(}\FunctionTok{predict}\NormalTok{(lda\_fit, diabetes\_test)) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{bind\_cols}\NormalTok{(diabetes\_test)}
+
+\FunctionTok{head}\NormalTok{(lda\_preds)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 6 x 12
+##   `.pred_No Diabetes` .pred_Diabetes .pred_class Pregnancies Glucose
+##                 <dbl>          <dbl> <fct>             <dbl>   <dbl>
+## 1               0.982         0.0175 No Diabetes           1      89
+## 2               0.370         0.630  Diabetes              1     189
+## 3               0.252         0.748  Diabetes              5     166
+## 4               0.610         0.390  No Diabetes           3     126
+## 5               0.962         0.0385 No Diabetes           1     101
+## 6               0.644         0.356  No Diabetes           0     100
+## # i 7 more variables: BloodPressure <dbl>, SkinThickness <dbl>, Insulin <dbl>,
+## #   BMI <dbl>, DiabetesPedigreeFunction <dbl>, Age <dbl>, Outcome <fct>
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{lda\_preds }\OtherTok{\textless{}{-}}\NormalTok{ lda\_preds }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{mutate}\NormalTok{(}\AttributeTok{residual =}\NormalTok{ .pred\_Diabetes }\SpecialCharTok{{-}} \FunctionTok{as.numeric}\NormalTok{(Outcome }\SpecialCharTok{==} \StringTok{"Diabetes"}\NormalTok{))}
+
+\FunctionTok{ggplot}\NormalTok{(lda\_preds, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ .pred\_Diabetes, }\AttributeTok{y =}\NormalTok{ residual)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{alpha =} \FloatTok{0.6}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_hline}\NormalTok{(}\AttributeTok{yintercept =} \DecValTok{0}\NormalTok{, }\AttributeTok{linetype =} \StringTok{"dashed"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"LDA Residual Plot"}\NormalTok{,}
+       \AttributeTok{x =} \StringTok{"Predicted Probability (Diabetes)"}\NormalTok{,}
+       \AttributeTok{y =} \StringTok{"Residual"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme\_minimal}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{PortfolioFinal_files/figure-latex/unnamed-chunk-44-1.pdf}
+
+\subsection{Confusion matrix}\label{confusion-matrix-2}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{lda\_preds }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{conf\_mat}\NormalTok{(}\AttributeTok{truth =}\NormalTok{ Outcome, }\AttributeTok{estimate =}\NormalTok{ .pred\_class)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##              Truth
+## Prediction    No Diabetes Diabetes
+##   No Diabetes          47       14
+##   Diabetes              6       12
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{lda\_preds }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{roc\_curve}\NormalTok{(}\AttributeTok{truth =}\NormalTok{ Outcome, .pred\_Diabetes) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{autoplot}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{PortfolioFinal_files/figure-latex/unnamed-chunk-46-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{lda\_preds }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{roc\_auc}\NormalTok{(}\AttributeTok{truth =}\NormalTok{ Outcome, .pred\_Diabetes)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 1 x 3
+##   .metric .estimator .estimate
+##   <chr>   <chr>          <dbl>
+## 1 roc_auc binary         0.182
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{lda\_preds }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{metrics}\NormalTok{(}\AttributeTok{truth =}\NormalTok{ Outcome, }\AttributeTok{estimate =}\NormalTok{ .pred\_class)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 2 x 3
+##   .metric  .estimator .estimate
+##   <chr>    <chr>          <dbl>
+## 1 accuracy binary         0.747
+## 2 kap      binary         0.378
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{lda\_preds }\SpecialCharTok{\%\textgreater{}\%}
+\NormalTok{  yardstick}\SpecialCharTok{::}\FunctionTok{precision}\NormalTok{(}\AttributeTok{truth =}\NormalTok{ Outcome, }\AttributeTok{estimate =}\NormalTok{ .pred\_class)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 1 x 3
+##   .metric   .estimator .estimate
+##   <chr>     <chr>          <dbl>
+## 1 precision binary         0.770
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{lda\_preds }\SpecialCharTok{\%\textgreater{}\%}
+\NormalTok{  yardstick}\SpecialCharTok{::}\FunctionTok{recall}\NormalTok{(}\AttributeTok{truth =}\NormalTok{ Outcome, }\AttributeTok{estimate =}\NormalTok{ .pred\_class)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 1 x 3
+##   .metric .estimator .estimate
+##   <chr>   <chr>          <dbl>
+## 1 recall  binary         0.887
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{lda\_preds }\SpecialCharTok{\%\textgreater{}\%}
+\NormalTok{  yardstick}\SpecialCharTok{::}\FunctionTok{f\_meas}\NormalTok{(}\AttributeTok{truth =}\NormalTok{ Outcome, }\AttributeTok{estimate =}\NormalTok{ .pred\_class)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 1 x 3
+##   .metric .estimator .estimate
+##   <chr>   <chr>          <dbl>
+## 1 f_meas  binary         0.825
+\end{verbatim}
+
+\subsection{Poisson Regression (predict count outcome:
+Pregnancies)}\label{poisson-regression-predict-count-outcome-pregnancies}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{poisson\_recipe }\OtherTok{\textless{}{-}} \FunctionTok{recipe}\NormalTok{(Glucose }\SpecialCharTok{\textasciitilde{}}\NormalTok{ Pregnancies }\SpecialCharTok{+}\NormalTok{ BloodPressure }\SpecialCharTok{+}\NormalTok{ SkinThickness }\SpecialCharTok{+} 
+\NormalTok{                         Insulin }\SpecialCharTok{+}\NormalTok{ BMI }\SpecialCharTok{+}\NormalTok{ DiabetesPedigreeFunction }\SpecialCharTok{+}\NormalTok{ Age, }\AttributeTok{data =}\NormalTok{ diabetes\_train)}
+
+\NormalTok{poisson\_spec }\OtherTok{\textless{}{-}} \FunctionTok{poisson\_reg}\NormalTok{() }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{set\_engine}\NormalTok{(}\StringTok{"glm"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{set\_mode}\NormalTok{(}\StringTok{"regression"}\NormalTok{)}
+
+\NormalTok{poisson\_wf }\OtherTok{\textless{}{-}} \FunctionTok{workflow}\NormalTok{() }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{add\_recipe}\NormalTok{(poisson\_recipe) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{add\_model}\NormalTok{(poisson\_spec)}
+
+\NormalTok{poisson\_fit }\OtherTok{\textless{}{-}} \FunctionTok{fit}\NormalTok{(poisson\_wf, }\AttributeTok{data =}\NormalTok{ diabetes\_train)}
+
+\CommentTok{\# Evaluate}
+\FunctionTok{predict}\NormalTok{(poisson\_fit, diabetes\_test) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{bind\_cols}\NormalTok{(diabetes\_test) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{metrics}\NormalTok{(}\AttributeTok{truth =}\NormalTok{ Pregnancies, }\AttributeTok{estimate =}\NormalTok{ .pred)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 3 x 3
+##   .metric .estimator .estimate
+##   <chr>   <chr>          <dbl>
+## 1 rmse    standard    120.    
+## 2 rsq     standard      0.0352
+## 3 mae     standard    119.
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{poisson\_preds }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(poisson\_fit, diabetes\_test) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{bind\_cols}\NormalTok{(diabetes\_test)}
+
+\NormalTok{poisson\_preds}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 79 x 10
+##    .pred Pregnancies Glucose BloodPressure SkinThickness Insulin   BMI
+##    <dbl>       <dbl>   <dbl>         <dbl>         <dbl>   <dbl> <dbl>
+##  1 105.            1      89            66            23      94  28.1
+##  2 251.            1     189            60            23     846  30.1
+##  3 132.            5     166            72            19     175  25.8
+##  4 138.            3     126            88            41     235  39.3
+##  5  97.5           1     101            50            15      36  24.2
+##  6 131.            0     100            88            60     110  46.8
+##  7 113.            4     146            85            27     100  28.9
+##  8 114.            5     139            64            35     140  28.6
+##  9 121.            7      81            78            40      48  46.7
+## 10  97.5           1      71            48            18      76  20.4
+## # i 69 more rows
+## # i 3 more variables: DiabetesPedigreeFunction <dbl>, Age <dbl>, Outcome <fct>
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{poisson\_preds }\OtherTok{\textless{}{-}}\NormalTok{ poisson\_preds }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{mutate}\NormalTok{(}\AttributeTok{residual =}\NormalTok{ Pregnancies }\SpecialCharTok{{-}}\NormalTok{ .pred)}
+
+\FunctionTok{ggplot}\NormalTok{(poisson\_preds, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ .pred, }\AttributeTok{y =}\NormalTok{ residual)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{alpha =} \FloatTok{0.6}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_hline}\NormalTok{(}\AttributeTok{yintercept =} \DecValTok{0}\NormalTok{, }\AttributeTok{linetype =} \StringTok{"dashed"}\NormalTok{, }\AttributeTok{color =} \StringTok{"red"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Residual Plot for Poisson Regression"}\NormalTok{,}
+       \AttributeTok{x =} \StringTok{"Predicted Glucose"}\NormalTok{,}
+       \AttributeTok{y =} \StringTok{"Residual (Observed {-} Predicted)"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme\_minimal}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{PortfolioFinal_files/figure-latex/unnamed-chunk-50-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{poisson\_preds }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{rmse}\NormalTok{(}\AttributeTok{truth =}\NormalTok{ Pregnancies, }\AttributeTok{estimate =}\NormalTok{ .pred)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 1 x 3
+##   .metric .estimator .estimate
+##   <chr>   <chr>          <dbl>
+## 1 rmse    standard        120.
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{poisson\_preds }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{mae}\NormalTok{(}\AttributeTok{truth =}\NormalTok{ Pregnancies, }\AttributeTok{estimate =}\NormalTok{ .pred)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 1 x 3
+##   .metric .estimator .estimate
+##   <chr>   <chr>          <dbl>
+## 1 mae     standard        119.
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{poisson\_preds }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{rsq}\NormalTok{(}\AttributeTok{truth =}\NormalTok{ Pregnancies, }\AttributeTok{estimate =}\NormalTok{ .pred)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 1 x 3
+##   .metric .estimator .estimate
+##   <chr>   <chr>          <dbl>
+## 1 rsq     standard      0.0352
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{ggplot}\NormalTok{(poisson\_preds, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ Glucose, }\AttributeTok{y =}\NormalTok{ .pred)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{alpha =} \FloatTok{0.6}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_abline}\NormalTok{(}\AttributeTok{slope =} \DecValTok{1}\NormalTok{, }\AttributeTok{intercept =} \DecValTok{0}\NormalTok{, }\AttributeTok{linetype =} \StringTok{"dashed"}\NormalTok{, }\AttributeTok{color =} \StringTok{"blue"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Observed vs Predicted Counts"}\NormalTok{,}
+       \AttributeTok{x =} \StringTok{"Actual Glucose"}\NormalTok{,}
+       \AttributeTok{y =} \StringTok{"Predicted Glucose"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme\_minimal}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{PortfolioFinal_files/figure-latex/unnamed-chunk-52-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{poisson\_model }\OtherTok{\textless{}{-}} \FunctionTok{extract\_fit\_engine}\NormalTok{(poisson\_fit)}
+\FunctionTok{summary}\NormalTok{(poisson\_model)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+## stats::glm(formula = ..y ~ ., family = stats::poisson, data = data)
+## 
+## Coefficients:
+##                            Estimate Std. Error z value Pr(>|z|)    
+## (Intercept)               4.220e+00  3.588e-02 117.596  < 2e-16 ***
+## Pregnancies              -7.116e-04  2.086e-03  -0.341  0.73295    
+## BloodPressure             2.249e-03  4.540e-04   4.954 7.26e-07 ***
+## SkinThickness             1.040e-03  6.494e-04   1.601  0.10939    
+## Insulin                   9.328e-04  4.004e-05  23.298  < 2e-16 ***
+## BMI                       2.454e-03  9.961e-04   2.464  0.01376 *  
+## DiabetesPedigreeFunction  4.270e-02  1.403e-02   3.044  0.00234 ** 
+## Age                       4.510e-03  6.812e-04   6.620 3.59e-11 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for poisson family taken to be 1)
+## 
+##     Null deviance: 2408.9  on 312  degrees of freedom
+## Residual deviance: 1441.0  on 305  degrees of freedom
+## AIC: 3527.6
+## 
+## Number of Fisher Scoring iterations: 4
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# You can also compute dispersion:}
+\NormalTok{dispersion }\OtherTok{\textless{}{-}} \FunctionTok{sum}\NormalTok{(}\FunctionTok{residuals}\NormalTok{(poisson\_model, }\AttributeTok{type =} \StringTok{"pearson"}\NormalTok{)}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{) }\SpecialCharTok{/}\NormalTok{ poisson\_model}\SpecialCharTok{$}\NormalTok{df.residual}
+\NormalTok{dispersion  }
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 4.844562
+\end{verbatim}
+
+\subsection{Polynomial Regression (e.g., predict Glucose using
+polynomial of
+Age)}\label{polynomial-regression-e.g.-predict-glucose-using-polynomial-of-age}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Create the recipe using step\_poly for Age}
+\NormalTok{poly\_recipe }\OtherTok{\textless{}{-}} \FunctionTok{recipe}\NormalTok{(Glucose }\SpecialCharTok{\textasciitilde{}}\NormalTok{ Pregnancies }\SpecialCharTok{+}\NormalTok{ BloodPressure }\SpecialCharTok{+}\NormalTok{ SkinThickness }\SpecialCharTok{+} 
+\NormalTok{                         Insulin }\SpecialCharTok{+}\NormalTok{ BMI }\SpecialCharTok{+}\NormalTok{ DiabetesPedigreeFunction }\SpecialCharTok{+}\NormalTok{ Age, }\AttributeTok{data =}\NormalTok{ diabetes\_train) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{step\_poly}\NormalTok{(Age, }\AttributeTok{degree =} \DecValTok{3}\NormalTok{)}
+
+\CommentTok{\# Specify a linear regression model}
+\NormalTok{lm\_spec }\OtherTok{\textless{}{-}} \FunctionTok{linear\_reg}\NormalTok{() }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{set\_engine}\NormalTok{(}\StringTok{"lm"}\NormalTok{)}
+
+\CommentTok{\# Build the workflow}
+\NormalTok{lm\_wf }\OtherTok{\textless{}{-}} \FunctionTok{workflow}\NormalTok{() }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{add\_recipe}\NormalTok{(poly\_recipe) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{add\_model}\NormalTok{(lm\_spec)}
+
+\CommentTok{\# Fit the model}
+\NormalTok{lm\_fit }\OtherTok{\textless{}{-}} \FunctionTok{fit}\NormalTok{(lm\_wf, }\AttributeTok{data =}\NormalTok{ diabetes\_train)}
+
+\CommentTok{\# Predict and evaluate on the test set}
+\FunctionTok{predict}\NormalTok{(lm\_fit, diabetes\_test) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{bind\_cols}\NormalTok{(diabetes\_test) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{metrics}\NormalTok{(}\AttributeTok{truth =}\NormalTok{ Glucose, }\AttributeTok{estimate =}\NormalTok{ .pred)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 3 x 3
+##   .metric .estimator .estimate
+##   <chr>   <chr>          <dbl>
+## 1 rmse    standard      24.6  
+## 2 rsq     standard       0.331
+## 3 mae     standard      19.8
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{poly\_preds }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(lm\_fit, diabetes\_test) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{bind\_cols}\NormalTok{(diabetes\_test)}
+
+\NormalTok{poly\_preds}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 79 x 10
+##    .pred Pregnancies Glucose BloodPressure SkinThickness Insulin   BMI
+##    <dbl>       <dbl>   <dbl>         <dbl>         <dbl>   <dbl> <dbl>
+##  1 102.            1      89            66            23      94  28.1
+##  2 222.            1     189            60            23     846  30.1
+##  3 133.            5     166            72            19     175  25.8
+##  4 140.            3     126            88            41     235  39.3
+##  5  95.6           1     101            50            15      36  24.2
+##  6 133.            0     100            88            60     110  46.8
+##  7 114.            4     146            85            27     100  28.9
+##  8 115.            5     139            64            35     140  28.6
+##  9 120.            7      81            78            40      48  46.7
+## 10  94.3           1      71            48            18      76  20.4
+## # i 69 more rows
+## # i 3 more variables: DiabetesPedigreeFunction <dbl>, Age <dbl>, Outcome <fct>
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{poly\_preds }\OtherTok{\textless{}{-}}\NormalTok{ poly\_preds }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{mutate}\NormalTok{(}\AttributeTok{residual =}\NormalTok{ Glucose }\SpecialCharTok{{-}}\NormalTok{ .pred)}
+
+\FunctionTok{ggplot}\NormalTok{(poly\_preds, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ .pred, }\AttributeTok{y =}\NormalTok{ residual)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{alpha =} \FloatTok{0.6}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_hline}\NormalTok{(}\AttributeTok{yintercept =} \DecValTok{0}\NormalTok{, }\AttributeTok{color =} \StringTok{"red"}\NormalTok{, }\AttributeTok{linetype =} \StringTok{"dashed"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Residual Plot (Polynomial Regression)"}\NormalTok{,}
+       \AttributeTok{x =} \StringTok{"Predicted Glucose"}\NormalTok{,}
+       \AttributeTok{y =} \StringTok{"Residual (Observed {-} Predicted)"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme\_minimal}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{PortfolioFinal_files/figure-latex/unnamed-chunk-56-1.pdf}
+
+\end{document}

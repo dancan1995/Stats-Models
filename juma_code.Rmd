@@ -1,0 +1,1161 @@
+---
+title: "Project 2 - GLM"
+author: "Dancun Juma & Mohamed Ndiaye"
+date: "`r Sys.Date()`"
+output: 
+  word_document:
+    toc: true
+    toc_depth: 2
+    number_sections: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Import libraries
+```{r warning=FALSE,message=FALSE}
+# Load necessary libraries
+library(readxl)
+library(tidymodels)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(broom)
+library(caret)
+library(flextable)
+library(GGally)
+library(readr)
+library(nnet)
+library(janitor)
+library(skimr)
+library(discrim)
+library(nnet)
+library(poissonreg)
+library(yardstick)
+library(car)
+library(ggpubr)
+library(discrim)  # For LDA & QDA models
+library(patchwork)
+```
+
+
+# Introduction
+This project aims to model and predict students’ academic performance using data from the 2019 National Household Education Surveys Program. The response variable, SEGRADES (student grades), is predicted using a set of student, parent, and household characteristics, including school involvement, family income, and parental education. We apply multinomial logistic regression using the tidymodels framework in R to evaluate relationships between predictors and grade outcomes. Model performance is assessed using metrics such as accuracy and confusion matrices. Additionally, we explore ROC curves and visualize class probabilities to interpret model behavior and gain insights into educational success factors.
+
+
+## Objective of our project
+## What family, school, and home factors influence student academic performance?"
+
+### Response Variable
+SEGRADES
+
+### Possible Predictors
+School Involvement Variables (Parents): FSVOL, FSSPORTX, FSMTNG, FSPTMTNG, FSFUNDRS, FSCOMMTE, FSCOUNSLR (Parental involvement in school)
+
+Home Environment: FHHOME, FHWKHRS, FHAMOUNT, FHHELP, FOCRAFTS, FOGAMES, FODINNERX, FOBOOKSTX (Time spent helping with homework, family meals, reading, activities)
+
+Parental Demographics: P1EDU or PARGRADEX, P1EMPL, P1MRSTA, P1HRSWK, TTLHHINC, OWNRNTHB
+(Education, employment, income, housing)
+
+Student Characteristics: CSEX (gender), CENREG (region), DSBLTY (disability), AGE (CDOBYY), CSPEAKX (language spoken)
+
+Technology/Internet: EINTNET (Internet access at home)
+
+### The variables we will use for the model are  (SEGRADES ~ SEENJOY + FSSPORTX + FHHELP + TTLHHINC + CSEX + DSBLTY + FODINNERX + PARGRADEX)
+
+```{r}
+# Create a data frame with variable information
+var_info <- tribble(
+  ~Variable, ~Label, ~Levels,
+  
+  # Response
+  "SEGRADES", "Child's grades", 
+  "1 = Mostly A's; 2 = Mostly B's; 3 = Mostly C's; 4 = Mostly D's or lower; 5 = School does not give these grades; -1 = Valid Skip",
+
+  # Predictors
+  "SEENJOY", "Child's enjoyment of school", 
+  "1 = Strongly agree; 2 = Agree; 3 = Disagree; 4 = Strongly disagree; -1 = Valid Skip",
+
+  "FSSPORTX", "Attended school/class event", 
+  "1 = Yes; 2 = No; -1 = Valid Skip",
+
+  "FHHELP", "Days child receives homework help", 
+  "1 = Less than once/week; 2 = 1–2 days/week; 3 = 3–4 days/week; 4 = 5+ days/week; 5 = Never; -1 = Valid Skip",
+
+  "TTLHHINC", "Total household income", 
+  "1 = $0–10k; 2 = $10k–20k; 3 = $20k–30k; 4 = $30k–40k; 5 = $40k–50k; 6 = $50k–60k; 7 = $60k–75k; 8 = $75k–100k; 9 = $100k–150k; 10 = $150k–200k; 11 = $200k–250k; 12 = $250k+",
+
+  "CSEX", "Child's sex", 
+  "1 = Male; 2 = Female",
+
+  "DSBLTY", "Child has disability", 
+  "1 = Has disability; 2 = Does not have disability",
+
+  "FODINNERX", "Times family ate dinner together last week", 
+  "0 = None; 1 = One day; 2 = Two days; 3 = Three days; 4 = Four days; 5 = Five days; 6 = Six days; 7 = Seven days",
+
+  "PARGRADEX", "Parent/guardian highest education", 
+  "1 = < High school; 2 = High school grad; 3 = Some college/Vocational; 4 = College grad; 5 = Graduate/professional school"
+)
+
+# Create flextable
+flextable(var_info) %>%
+  autofit() %>%
+  set_caption("Variable Descriptions and Coded Levels for Predicting SEGRADES")
+```
+
+
+# Import the dataset
+```{r dataset}
+pfi_data_2019 <- read_excel("pfi-data.xlsx")
+head(pfi_data_2019)
+pfi_data_2016 <- read_excel("pfi-data.xlsx", sheet = "curated 2016")
+head(pfi_data_2016)
+```
+
+# Column names for 2019 data
+```{r}
+names(pfi_data_2019)
+```
+
+## Column names for 2016 data
+```{r}
+names(pfi_data_2016)
+```
+
+## Common variables
+```{r}
+# Get variable names for each dataset
+vars_2019 <- names(pfi_data_2019)
+vars_2016 <- names(pfi_data_2016)
+
+# Find common variables
+common_vars <- intersect(vars_2019, vars_2016)
+
+# Display the common variables
+print(common_vars)
+```
+
+**There were 66 common variables**
+
+# Data quality checks by exploration
+```{r}
+glimpse(pfi_data_2016)
+```
+
+**The dataset comprises 13,463 observations and 69 variables, capturing student demographics, academic performance, parental involvement, and home environment factors.**
+
+```{r}
+glimpse(pfi_data_2019)
+```
+
+**This pfi_2019 dataset is observational study dataset related to education and family influences on student academic performance. With 15,500 rows and 75 columns, it contains a mix of categorical and numerical variables coded as integers.**
+
+## Summary statistics
+```{r summary}
+summary(pfi_data_2019)
+```
+
+The dataset summary provides key insights into the variables used in our model, particularly those related to student academic performance. **SEGRADES**, our response variable, ranges from -1 (missing) to 5, with a mean of 2.004, suggesting most students have mid-level grades. **SEENJOY**, a measure of student enjoyment in school, has a mean of 1.766, indicating moderate enjoyment levels.  
+
+Parental involvement factors such as **FSSPORTX**, **FSVOL**, **FSMTNG**, **FSPTMTNG**, **FSFUNDRS**, and **FSCOMMTE** generally range from -1 (missing) to 2, with means close to 1, suggesting low-to-moderate parental engagement. **FHWKHRS**, representing weekly work hours of the household’s primary caregiver, has a wide range (from -1 to 75) with a mean of 5.36, indicating varied work commitments. **TTLHHINC**, representing household income level, has a median of 8, implying mid-level income households.  
+
+Home environment variables such as **FODINNERX**, reflecting family dinners per week, have a mean of 4.78, indicating frequent family interactions. **PARGRADEX**, capturing parental education, ranges from 1 to 5, with a mean of 3.62, suggesting moderate parental education levels. **CSEX** and **DSBLTY**, representing student gender and disability status, indicate a balanced distribution, with most students not reporting disabilities. These variables provide a comprehensive foundation for modeling academic performance.
+
+
+```{r}
+summary(pfi_data_2016)
+```
+
+
+## Combining the datasets
+```{r}
+# List of common variables
+common_vars <- c("BASMID", "ALLGRADEX", "EDCPUB", "SPUBCHOIX", "SCONSIDR", 
+                 "SEENJOY", "SEGRADES", "SEABSNT", "SEGRADEQ", "FSSPORTX", 
+                 "FSVOL", "FSMTNG", "FSPTMTNG", "FSATCNFN", "FSFUNDRS", 
+                 "FSCOMMTE", "FSCOUNSLR", "FSFREQ", "FSNOTESX", "FSMEMO", 
+                 "FCSCHOOL", "FCTEACHR", "FCSTDS", "FCORDER", "FCSUPPRT", 
+                 "FHHOME", "FHWKHRS", "FHAMOUNT", "FHCAMT", "FHPLACE", 
+                 "FHCHECKX", "FHHELP", "FOSTORY2X", "FOCRAFTS", "FOGAMES", 
+                 "FOBUILDX", "FOSPORT", "FORESPON", "FOHISTX", "FODINNERX", 
+                 "FOLIBRAYX", "FOBOOKSTX", "HDHEALTH", "CDOBMM", "CDOBYY", 
+                 "CSEX", "CSPEAKX", "HHTOTALXX", "RELATION", "P1REL", 
+                 "P1SEX", "P1MRSTA", "P1EMPL", "P1HRSWK", "P1MTHSWRK", 
+                 "P1AGE", "P2GUARD", "TTLHHINC", "OWNRNTHB", "SEFUTUREX", 
+                 "DSBLTY", "NUMSIBSX", "PARGRADEX", "INTACC", "CENREG", "ZIPLOCL")
+
+# Subset each data frame to only include the common variables
+pfi_data_2016_subset <- pfi_data_2016[, common_vars, drop = FALSE]
+pfi_data_2019_subset <- pfi_data_2019[, common_vars, drop = FALSE]
+
+# Combine the two datasets
+combined_data <- rbind(pfi_data_2016_subset, pfi_data_2019_subset)
+
+# View the combined data
+head(combined_data)
+```
+
+## Subset the data for School Involvement Variables (Parents) objective
+```{r}
+# Subset with CAPITALIZED variable names
+pfi_subset <- combined_data %>%
+  select(
+    SEGRADES,   # Student grades (outcome)
+    SEABSNT,    # Absences
+    SEENJOY,    # Enjoyment of school
+    FSSPORTX,   # School-sponsored sports
+    FHHELP,     # Homework help
+    TTLHHINC,   # Total household income
+    CSEX,       # Child sex
+    DSBLTY,     # Disability status
+    FODINNERX,  # Family dinners
+    PARGRADEX   # Parent education level
+  )
+```
+
+
+# Exploratory Data Analysis
+## Skim the dataset
+```{r}
+skim(pfi_subset)
+```
+
+**SEGRADES**, our response variable, has a mean of 2.03 and a standard deviation of 1.32, indicating variation in student academic performance. **SEENJOY**, measuring school enjoyment, has a mean of 1.76, showing moderate enjoyment.  
+
+Parental involvement indicators like **FSSPORTX** (sports participation support) have a mean of 1.19, suggesting most parents provide at least some support. **FHHELP**, representing homework help frequency, has a mean of 2.25, indicating that parental assistance varies.  
+
+**TTLHHINC**, a key socioeconomic factor, has a median of 8, implying mid-to-upper income levels. **CSEX**, indicating student gender, is nearly evenly distributed (mean ≈ 1.48), and **DSBLTY**, measuring disability status, shows most students do not have disabilities (mean ≈ 1.79).  
+
+**FODINNERX**, reflecting weekly family dinners, has a mean of 4.77, suggesting frequent family interaction. **PARGRADEX**, measuring parental education, has a mean of 3.59, indicating that most parents have at least some college education. These descriptive statistics provide insight into how family, school, and home factors influence academic performance.
+
+## Converting to as factors
+```{r}
+# Convert relevant variables to factors
+pfi_subset_factors <- pfi_subset %>%
+  mutate(
+    SEGRADES = as.factor(SEGRADES),
+    SEENJOY = as.factor(SEENJOY),
+    FSSPORTX = as.factor(FSSPORTX),
+    FHHELP = as.factor(FHHELP),
+    TTLHHINC = as.factor(TTLHHINC),
+    CSEX = as.factor(CSEX),
+    DSBLTY = as.factor(DSBLTY),
+    FODINNERX = as.factor(FODINNERX),
+    PARGRADEX = as.factor(PARGRADEX)
+  )
+
+# View the structure of the dataset to confirm the changes
+str(pfi_subset_factors)
+```
+
+***Our dataset consists of 28,963 observations and 10 variables, all of which are categorical (factors).*
+
+```{}
+# Generate the ggpairs plot for the factorized dataset
+ggpairs(pfi_subset[, c("SEGRADES", "SEENJOY", "FSSPORTX", "FHHELP", 
+                                "TTLHHINC", "CSEX", "DSBLTY", "FODINNERX", "PARGRADEX")])
+```
+
+
+## Summary statistics
+```{r}
+summary(pfi_subset)
+```
+
+## Recode the -1 to appear as NA
+```{r}
+# Recode -1 as NA for the relevant variables
+pfi_subset <- pfi_subset %>%
+  mutate(
+    SEGRADES = ifelse(SEGRADES == -1, NA, SEGRADES),
+    SEABSNT = ifelse(SEABSNT == -1, NA, SEABSNT),
+    SEENJOY = ifelse(SEENJOY == -1, NA, SEENJOY),
+    FSSPORTX = ifelse(FSSPORTX == -1, NA, FSSPORTX),
+    FHHELP = ifelse(FHHELP == -1, NA, FHHELP),
+    TTLHHINC = ifelse(TTLHHINC == -1, NA, TTLHHINC),
+    CSEX = ifelse(CSEX == -1, NA, CSEX),
+    DSBLTY = ifelse(DSBLTY == -1, NA, DSBLTY),
+    FODINNERX = ifelse(FODINNERX == -1, NA, FODINNERX),
+    PARGRADEX = ifelse(PARGRADEX == -1, NA, PARGRADEX)
+  )
+
+# View the cleaned data
+summary(pfi_subset)
+```
+
+### Drop the missing values
+**School does not give these grades response**: This represents a specific case where the grading system may not align with the categories in the model (e.g., using alternative grading schemes as we would say). It might be useful to treat this as a distinct category in your model or remove it from the dataset, depending on your research goals. Including it as a separate category would provide information about students in non-traditional grading systems, but if the focus is only on traditional letter grades, it might be better to exclude these cases.
+
+```{r}
+pfi_subset <- pfi_subset %>%
+  mutate(SEGRADES = na_if(SEGRADES, 5)) %>%  # Replace 5 with NA
+  drop_na()  # Drop rows with NA values
+
+summary(pfi_subset)
+```
+
+SEGRADES, our response variable, represents students’ grades, where 1 indicates mostly A’s, 2 represents mostly B’s, and higher values correspond to lower academic performance. The median grade is 2 (mostly B’s), with the majority scoring A’s or B’s.
+
+SEENJOY, measuring school enjoyment (1 = strongly agree, 4 = strongly disagree), has a median value of 2, meaning most students have a positive attitude toward school. FSSPORTX, indicating whether a child’s family attended school events (1 = yes, 2 = no), shows that most families participated. FHHELP, reflecting parental homework assistance (1 = rarely, 5 = never), has a median of 2, suggesting moderate involvement.
+
+TTLHHINC, household income categorized from 1 (0–10k) to 12 (250k+) dollars, has a median of 8 (75k–100k), meaning most families are middle to upper-middle class. CSEX (1 = male, 2 = female) is nearly balanced. DSBLTY (1 = disability, 2 = no disability) is mostly non-disabled.
+
+FODINNERX, counting family dinners per week (0–7), has a median of 5, suggesting frequent family engagement. PARGRADEX, parental education (1 = less than high school, 5 = graduate school), has a median of 4, meaning most parents have a college degree.
+
+
+### Mutating the variables
+```{r}
+# Create the subset and recode as factors with labels
+pfi_subset_fact <- pfi_subset %>%
+  select(SEGRADES, SEENJOY, FSSPORTX, FHHELP, TTLHHINC, CSEX, DSBLTY, FODINNERX, PARGRADEX) %>%
+  mutate(
+    SEGRADES = factor(SEGRADES, levels = 1:4,
+                      labels = c("Mostly A's", "Mostly B's", "Mostly C's", "Mostly D's or lower")),
+    SEENJOY = factor(SEENJOY, levels = 1:4,
+                     labels = c("Strongly Agree", "Agree", "Disagree", "Strongly Disagree")),
+    FSSPORTX = factor(FSSPORTX, levels = 1:2,
+                      labels = c("Yes", "No")),
+    FHHELP = factor(FHHELP, levels = 1:5,
+                    labels = c("Less than once/week", "1–2 days/week", "3–4 days/week", "5+ days/week", "Never")),
+    TTLHHINC = factor(TTLHHINC, levels = 1:12,
+                      labels = c("$0–10k", "$10k–20k", "$20k–30k", "$30k–40k", "$40k–50k", "$50k–60k", 
+                                 "$60k–75k", "$75k–100k", "$100k–150k", "$150k–200k", "$200k–250k", "$250k+")),
+    CSEX = factor(CSEX, levels = 1:2,
+                  labels = c("Male", "Female")),
+    DSBLTY = factor(DSBLTY, levels = 1:2,
+                    labels = c("Has Disability", "No Disability")),
+    FODINNERX = factor(FODINNERX, levels = 0:7,
+                       labels = c("None", "1 day", "2 days", "3 days", "4 days", "5 days", "6 days", "7 days")),
+    PARGRADEX = factor(PARGRADEX, levels = 1:5,
+                       labels = c("< High School", "High School Grad", "Some College/Vocational", 
+                                  "College Graduate", "Graduate/Professional"))
+  )
+
+head(pfi_subset_fact)
+```
+
+**Here we created the subset and recode as factors with labels**
+
+```{r}
+pfi_subset = pfi_subset_fact
+```
+
+```{r}
+# Function to plot SEGRADES against categorical predictors with tilted x-axis labels and percentages
+plot_segrades <- function(var) {
+  # Calculate the proportions
+  pfi_subset_fact %>%
+    group_by(.data[[var]], SEGRADES) %>%
+    summarise(count = n()) %>%
+    mutate(percentage = count / sum(count) * 100) %>%
+    ggplot(aes(x = .data[[var]], y = percentage, fill = SEGRADES)) +
+    geom_bar(stat = "identity", position = "stack") +  # Proportional stacked bars
+    geom_text(aes(label = paste0(round(percentage, 1), "%")), 
+              position = position_stack(vjust = 0.5), size = 3) +  # Add percentage labels
+    labs(title = paste("SEGRADES by", var),
+         x = var, 
+         y = "Percentage",
+         fill = "SEGRADES") +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Tilt x-axis labels
+}
+
+# Generate plots for each variable of interest
+plot_segrades("SEENJOY")
+plot_segrades("FSSPORTX")
+plot_segrades("FHHELP")
+plot_segrades("CSEX")
+plot_segrades("DSBLTY")
+plot_segrades("FODINNERX")
+plot_segrades("PARGRADEX")
+```
+
+
+```{r}
+# Bar plot for SEENJOY vs SEGRADES
+enjoyment_barplot <- pfi_subset |>
+  ggplot(aes(x = as.factor(SEENJOY), fill = as.factor(SEGRADES))) +
+  geom_bar(position = "dodge") +  # Dodge to have bars side-by-side
+  labs(title = "Student Grades by Enjoyment of School",
+       x = "Enjoyment of School (SEENJOY)",
+       y = "Count of Students",
+       fill = "Student Grades (SEGRADES)") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Tilt x-axis labels
+
+# Bar plot for FSSPORTX vs SEGRADES
+sports_barplot <- pfi_subset |>
+  ggplot(aes(x = as.factor(FSSPORTX), fill = as.factor(SEGRADES))) +
+  geom_bar(position = "dodge") +
+  labs(title = "Student Grades by Participation in Sports",
+       x = "Participation in Sports (FSSPORTX)",
+       y = "Count of Students",
+       fill = "Student Grades (SEGRADES)") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Tilt x-axis labels
+
+# Bar plot for FHHELP vs SEGRADES
+homework_help_barplot <- pfi_subset |>
+  ggplot(aes(x = as.factor(FHHELP), fill = as.factor(SEGRADES))) +
+  geom_bar(position = "dodge") +
+  labs(title = "Student Grades by Homework Help from Family",
+       x = "Homework Help (FHHELP)",
+       y = "Count of Students",
+       fill = "Student Grades (SEGRADES)") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Tilt x-axis labels
+
+# Display the plots
+enjoyment_barplot
+sports_barplot
+homework_help_barplot
+```
+
+### Data Splitting
+
+```{r}
+# Data Splitting
+set.seed(2025)
+
+# Use the cleaned and subset data
+pfi_model <- pfi_subset |>
+  select(SEGRADES, SEENJOY, FSSPORTX, FHHELP, TTLHHINC, CSEX, DSBLTY, FODINNERX, PARGRADEX) |>
+  drop_na()
+
+# Stratified split on SEGRADES (response variable)
+data_split <- initial_split(pfi_model, prop = 0.8, strata = SEGRADES)
+train_data <- training(data_split)
+test_data  <- testing(data_split)
+
+# Preview data
+head(train_data)
+head(test_data)
+```
+
+
+**We started by cleaning and selecting relevant variables from the pfi_subset dataset, and then remove any missing values. We split the data into training (80%) and testing (20%) sets using stratified sampling based on the response variable, SEGRADES**
+
+
+# Model 1: Multinomial logistic regression as the primary model
+```{r}
+# Define the recipe for preprocessing (handling categorical variables)
+pfi_recipe <- recipe(SEGRADES ~ SEENJOY + FSSPORTX + FHHELP + TTLHHINC + CSEX + DSBLTY + FODINNERX + PARGRADEX, 
+                     data = train_data) %>%
+  step_dummy(all_nominal(), -all_outcomes()) %>%  
+  step_zv(all_predictors())  # Remove zero variance predictors
+
+# Define the model specification for multinomial logistic regression
+multinom_spec <- multinom_reg() %>%
+  set_engine("nnet") %>%
+  set_mode("classification")
+
+# Create a workflow with the recipe and model
+multinom_workflow <- workflow() %>%
+  add_recipe(pfi_recipe) %>%
+  add_model(multinom_spec)
+
+# Fit the model on the training data
+multinom_fit <- multinom_workflow %>%
+  fit(data = train_data)
+
+# Extract the fitted model from the workflow
+fitted_model <- extract_fit_parsnip(multinom_fit)
+
+fitted_model
+```
+
+
+**Our multinomial logistic regression model predicts the likelihood of a student receiving various grades (Mostly B's, C's, D's, or No Letter Grades) based on multiple predictors, including enjoyment of school (SEENJOY), participation in sports (FSSPORTX), homework help (FHHELP), family income (TTLHHINC), gender (CSEX), disability status (DSBLTY), family dinner frequency (FODINNERX), and parental education level (PARGRADEX).**
+
+**The coefficients represent the log-odds of being in each grade category relative to the reference category (Mostly A's), controlling for other variables. For example, the coefficient for SEENJOY_Agree in predicting "Mostly B's" is 0.88, which means students who agree with enjoying school have higher odds of getting Mostly B's compared to those who mostly get A's, all else being equal. Similarly, participation in sports (FSSPORTX_No) and receiving 1-2 days/week of homework help (FHHELP_X1.2.days.week) are associated with different odds for various grade categories.**
+
+**The model provides insight into how factors like enjoyment, participation in activities, and family dynamics influence academic performance. For instance, students with more family dinner time tend to have higher odds of receiving better grades. The residual deviance and AIC values suggest the model fit, with lower AIC indicating better fit compared to other models.**
+
+
+$$
+\log\left(\frac{P(Y = \text{Mostly B's})}{P(Y = \text{Mostly A's})} \right) = 
+  0.8634 + \\
+  0.8499 \cdot \text{SEENJOY_Agree} + \\
+  1.3459 \cdot \text{SEENJOY_Disagree} + \\
+  1.2775 \cdot \text{SEENJOY_Strongly.Disagree} + \\
+  0.3028 \cdot \text{FSSPORTX_No} + \\
+  0.2511 \cdot \text{FHHELP_X1.2.days.week} + \\
+  0.2840 \cdot \text{FHHELP_X3.4.days.week} + \\
+  0.4016 \cdot \text{FHHELP_X5..days.week} + \\
+  (-0.1467) \cdot \text{FHHELP_Never} + \\
+  0.0842 \cdot \text{TTLHHINC_X.10k.20k} + \\
+  (-0.2438) \cdot \text{TTLHHINC_X.20k.30k} + \\
+  (-0.2771) \cdot \text{TTLHHINC_X.30k.40k} + \\
+  (-0.2008) \cdot \text{TTLHHINC_X.40k.50k} + \\
+  (-0.3162) \cdot \text{TTLHHINC_X.50k.60k} + \\
+  (-0.4166) \cdot \text{TTLHHINC_X.60k.75k} + \\
+  (-0.5376) \cdot \text{TTLHHINC_X.75k.100k} + \\
+  (-0.5274) \cdot \text{TTLHHINC_X.100k.150k} + \\
+  (-0.6132) \cdot \text{TTLHHINC_X.150k.200k} + \\
+  (-0.8557) \cdot \text{TTLHHINC_X.200k.250k} + \\
+  (-0.9211) \cdot \text{TTLHHINC_X.250k.} + \\
+  (-0.4838) \cdot \text{CSEX_Female} + \\
+  (-0.7046) \cdot \text{DSBLTY_No.Disability} + \\
+  0.0533 \cdot \text{FODINNERX_X1.day} + \\
+  (-0.0736) \cdot \text{FODINNERX_X2.days} + \\
+  (-0.1566) \cdot \text{FODINNERX_X3.days} + \\
+  (-0.1926) \cdot \text{FODINNERX_X4.days} + \\
+  (-0.2719) \cdot \text{FODINNERX_X5.days} + \\
+  (-0.2693) \cdot \text{FODINNERX_X6.days} + \\
+  (-0.3683) \cdot \text{FODINNERX_X7.days} + \\
+  (-0.2054) \cdot \text{PARGRADEX_High.School.Grad} + \\
+  (-0.4446) \cdot \text{PARGRADEX_Some.College.Vocational} + \\
+  (-0.7649) \cdot \text{PARGRADEX_College.Graduate} + \\
+  (-1.1097) \cdot \text{PARGRADEX_Graduate.Professional}
+$$
+
+
+
+## Predictions
+```{r}
+# Predict on the test data
+multinom_predictions <- predict(multinom_fit, test_data, type = "prob") %>%
+  bind_cols(predict(multinom_fit, test_data, type = "class") %>% 
+              rename(predicted_class = .pred_class),
+            test_data)
+
+multinom_predictions
+```
+
+**We can say that our multinomial regression model provides predicted probabilities for each category of student grades (Mostly A's, Mostly B's, Mostly C's, Mostly D's or lower, and No Letter Grades). For each observation, the model estimates the likelihood of each grade category. For example, in the first row, the model predicts that the student has a 58.97% chance of receiving "Mostly A's," a 27.29% chance of "Mostly B's," and so on. The predicted grade is assigned based on the highest probability. In this case, the predicted grade is "Mostly A's," which matches the actual grade in the dataset, showing correct classification for this student.**
+
+
+## Evaluate model performance on test data
+```{r}
+# Evaluate model performance
+multinom_metrics <- multinom_predictions %>%
+  metrics(truth = SEGRADES, estimate = predicted_class)
+
+# Display metrics
+print(multinom_metrics)
+```
+
+**Based on the model accuracy, we can see that the accuracy of the model is 0.6077, meaning the model correctly predicted the grade category approximately 60.77% of the time on the test data. Kappa (κ): The Kappa value is 0.2547, which measures the agreement between the predicted and actual categories beyond chance. A value of 0.2547 indicates a low level of agreement, suggesting that the model's predictions are only slightly better than random guessing.**
+
+
+## Confusion Matrix
+```{r}
+# Plot Confusion Matrix
+conf_matrix <- multinom_predictions %>%
+  conf_mat(truth = SEGRADES, estimate = predicted_class)
+
+conf_matrix
+
+# Plotting Confusion Matrix as Heatmap
+autoplot(conf_matrix, type = "heatmap") +
+  scale_fill_gradient(low = "white", high = "steelblue") +
+  labs(title = "Confusion Matrix Heatmap", x = "Predicted", y = "Actual")
+```
+
+**The confusion matrix indicates the performance of the model in predicting the grades (`SEGRADES`). It shows that the model performed well at predicting "Mostly A's," with 2245 correct predictions and a smaller number of misclassifications across other categories. The "Mostly B's" category had 619 correct predictions, with some misclassifications into "Mostly A's" (375) and "Mostly C's" (262). Predictions for "Mostly C's" and "Mostly D's or lower" were less accurate, with lower counts of correct predictions (59 and 2, respectively). Misclassifications of these categories suggest room for improvement in the model's ability to differentiate these grades.**
+
+## ROC Curve
+```{r}
+colnames(multinom_predictions)
+```
+
+```{r}
+# Generate ROC curve using actual .pred_ column names
+roc_curve_results <- multinom_predictions %>%
+  roc_curve(truth = SEGRADES, 
+            `.pred_Mostly A's`, 
+            `.pred_Mostly B's`, 
+            `.pred_Mostly C's`, 
+            `.pred_Mostly D's or lower`)
+
+# Plot ROC curve
+ggplot(roc_curve_results, aes(x = 1 - specificity, y = sensitivity, color = .level)) +
+  geom_path(linewidth = 1) +
+  geom_abline(linetype = "dashed") +
+  theme_minimal() +
+  labs(
+    x = "1 - Specificity", 
+    y = "Sensitivity", 
+    title = "ROC Curve for Multinomial Logistic Regression",
+    color = "Grade Level"
+  )
+```
+
+**The model performs best for predicting Mostly D’s or lower with the highest sensitivity, while Mostly B’s has the lowest performance. AUC values could quantify the performance further, but visually, the model shows varying predictive strengths across different grade levels.**
+
+
+### AUC Value
+```{r}
+# Calculate AUC for each class
+roc_auc <- multinom_predictions %>%
+  roc_auc(truth = SEGRADES, 
+          `.pred_Mostly A's`, 
+          `.pred_Mostly B's`, 
+          `.pred_Mostly C's`, 
+          `.pred_Mostly D's or lower`)
+
+print(roc_auc)
+```
+
+**An overall AUC of 0.713 is observed, meaning it has moderate discriminatory power in predicting student grade levels.**
+
+## Accuracy by Class
+```{r}
+# Accuracy by Class
+accuracy_by_class <- multinom_predictions %>%
+  group_by(SEGRADES) %>%
+  accuracy(truth = SEGRADES, estimate = predicted_class)
+
+# Plot Accuracy by Class
+ggplot(accuracy_by_class, aes(x = SEGRADES, y = .estimate)) +
+  geom_bar(stat = "identity", fill = "skyblue") +
+  labs(title = "Accuracy by Class", x = "Class", y = "Accuracy") +
+  theme_minimal()
+```
+
+
+**"Mostly A’s" has the highest accuracy, exceeding 85%, indicating strong model performance in this category. "Mostly B’s" follows at approximately 38%, while "Mostly C’s" and "Mostly D’s or lower" have significantly lower accuracy, around 10-15%. This imbalance indicates that the model is better at distinguishing high-performing students but struggles with lower-grade categories, likely due to class imbalances or overlapping feature distributions in the dataset.**
+
+
+## Visualize the predictions versus the actual Grades
+```{r}
+fte_colors <- c("#1b9e77", "#d95f02", "#7570b3", "#e7298a")
+
+multinom_predictions %>%
+  ggplot(aes(x = SEGRADES, fill = predicted_class)) +
+  geom_bar(position = "fill") +
+  scale_fill_manual(values = fte_colors) +
+  labs(
+    title = "Predicted vs Actual Student Grades",
+    x = "Actual SEGRADES",
+    y = "Proportion",
+    fill = "Predicted Grade"
+  ) +
+  theme_minimal()
+```
+
+
+**The model correctly predicts "Mostly A’s" with high accuracy, as seen by the dominant bar in that category. However, for lower grades, the model often misclassifies them as higher grades, particularly "Mostly B’s" and "Mostly A’s." The presence of "Mostly C’s" and "Mostly D’s or lower" suggests prediction errors, indicating that the model struggles to distinguish between these groups. This misclassification could be due to overlapping features or imbalanced data. Adjusting the model or dataset could improve performance.**
+
+```{r}
+test_data <- test_data %>%
+  mutate(SEGRADES = as.factor(SEGRADES))
+```
+
+
+## Conducting Cross validation
+```{r}
+# Set seed for reproducibility
+set.seed(2025)
+
+# Create 5-fold cross-validation splits
+cv_folds <- vfold_cv(train_data, v = 5, strata = SEGRADES)
+
+# Perform cross-validation
+cv_results <- fit_resamples(
+  multinom_workflow,
+  resamples = cv_folds,
+  metrics = metric_set(yardstick::accuracy, yardstick::roc_auc),  # Explicit function call
+  control = control_resamples(save_pred = TRUE)
+)
+
+# View cross-validation metrics
+cv_metrics <- collect_metrics(cv_results)
+print(cv_metrics)
+```
+
+**In summary, the model's overall accuracy is modest, but it has a decent ability to differentiate between classes, as shown by the ROC AUC score.**
+
+## Cross-Validation Confusion matrix
+```{r}
+# Extract predictions from cross-validation
+cv_predictions <- collect_predictions(cv_results)
+
+# Compute confusion matrix
+cv_conf_matrix <- cv_predictions %>%
+  conf_mat(truth = SEGRADES, estimate = .pred_class)
+
+# Print confusion matrix
+print(cv_conf_matrix)
+
+# Plot confusion matrix as a heatmap
+autoplot(cv_conf_matrix, type = "heatmap") +
+  scale_fill_gradient(low = "white", high = "steelblue") +
+  labs(title = "Cross-Validation Confusion Matrix Heatmap", x = "Predicted", y = "Actual")
+```
+
+**The confusion matrix suggests that the model has relatively strong performance in predicting "Mostly A's" with 8853 correct predictions. However, the model also misclassifies many instances of "Mostly B's" (3778 misclassifications), indicating a challenge in distinguishing between these two categories. The "Mostly C's" category has a moderate number of correct predictions (259), but there are significant misclassifications into both "Mostly B's" (206) and "Mostly D's or lower" (17). For "Mostly D's or lower," there are only a few correct predictions (10), with more misclassifications into higher grade categories. This suggests that the model has difficulty distinguishing lower grade categories.**
+
+
+## ROC Curve for Cross-Validation
+```{r}
+# Generate ROC curve from cross-validation
+cv_roc_curve <- cv_predictions %>%
+  roc_curve(truth = SEGRADES, 
+            `.pred_Mostly A's`, 
+            `.pred_Mostly B's`, 
+            `.pred_Mostly C's`, 
+            `.pred_Mostly D's or lower`)
+
+# Plot ROC curve
+ggplot(cv_roc_curve, aes(x = 1 - specificity, y = sensitivity, color = .level)) +
+  geom_path(linewidth = 1) +
+  geom_abline(linetype = "dashed") +
+  theme_minimal() +
+  labs(
+    x = "1 - Specificity", 
+    y = "Sensitivity", 
+    title = "Cross-Validation ROC Curve",
+    color = "Grade Level"
+  )
+```
+
+## Final Model Training After Cross-Validation
+```{r}
+# Train the final model on the full training set
+final_multinom_fit <- multinom_workflow %>%
+  fit(data = train_data)
+
+# Make final predictions on the test set
+final_predictions <- predict(final_multinom_fit, test_data, type = "prob") %>%
+  bind_cols(predict(final_multinom_fit, test_data, type = "class") %>% 
+              rename(predicted_class = .pred_class),
+            test_data)
+
+# Evaluate final model performance
+final_metrics <- final_predictions %>%
+  metrics(truth = SEGRADES, estimate = predicted_class)
+
+print(final_metrics)
+```
+
+**The model shows moderate accuracy but weak agreement with the true labels, indicating a need for further tuning, feature engineering, or perhaps a more complex model to improve performance.**
+
+
+```{r}
+fte_colors <- c("#1b9e77", "#d95f02", "#7570b3", "#e7298a")
+
+final_predictions %>%
+  ggplot(aes(x = SEGRADES, fill = predicted_class)) +
+  geom_bar(position = "fill") +
+  scale_fill_manual(values = fte_colors) +
+  labs(
+    title = "Final Model after cross validation: Predicted vs Actual Student Grades",
+    x = "Actual SEGRADES",
+    y = "Proportion",
+    fill = "Predicted Grade"
+  ) +
+  theme_minimal()
+```
+
+
+**The final model has an accuracy of approximately 60%**
+
+
+
+# Model 2: QDA and LDA
+## Define LDA Model
+```{r}
+# Define LDA model
+lda_spec <- discrim_linear() %>%
+  set_engine("MASS") %>%
+  set_mode("classification")
+
+# Create LDA workflow
+lda_workflow <- workflow() %>%
+  add_recipe(pfi_recipe) %>%
+  add_model(lda_spec)
+
+# Fit LDA model on training data
+lda_fit <- lda_workflow %>% fit(data = train_data)
+
+# Predict on test data
+lda_predictions <- predict(lda_fit, test_data, type = "prob") %>%
+  bind_cols(predict(lda_fit, test_data, type = "class") %>% 
+              rename(predicted_class = .pred_class),
+            test_data)
+
+# View predictions
+lda_predictions
+```
+
+**The first observation has a high probability (0.776) of being classified as "Mostly A's," and the model correctly predicted this class. Similarly, other observations show varying probabilities, with some correct predictions like "Mostly A's" and "Mostly B's," but also some misclassifications (e.g., "Mostly B's" predicted as "Mostly A's").**
+
+
+## Define QDA Model
+```{r}
+# Define QDA model
+qda_spec <- discrim_quad() %>%
+  set_engine("MASS") %>%
+  set_mode("classification")
+
+# Create QDA workflow
+qda_workflow <- workflow() %>%
+  add_recipe(pfi_recipe) %>%
+  add_model(qda_spec)
+
+# Fit QDA model on training data
+qda_fit <- qda_workflow %>% fit(data = train_data)
+
+# Predict on test data
+qda_predictions <- predict(qda_fit, test_data, type = "prob") %>%
+  bind_cols(predict(qda_fit, test_data, type = "class") %>% 
+              rename(predicted_class = .pred_class),
+            test_data)
+
+# View predictions
+qda_predictions
+```
+
+**We would say that the first observation has a very high probability of being "Mostly A's" (0.993), and the predicted class aligns with this, which is accurate. The second observation shows a higher probability for "Mostly B's" (0.889), with the predicted class being "Mostly B's," again accurate. The third observation shows a higher probability for "Mostly A's" (0.555), which aligns with the predicted class, showing a correct prediction.**
+
+
+## Evaluate Performance (LDA & QDA)
+```{r}
+# Convert to factor if not already
+lda_predictions <- lda_predictions %>%
+  mutate(
+    SEGRADES = as.factor(SEGRADES),
+    predicted_class = as.factor(predicted_class)
+  )
+
+qda_predictions <- qda_predictions %>%
+  mutate(
+    SEGRADES = as.factor(SEGRADES),
+    predicted_class = as.factor(predicted_class)
+  )
+
+# Compute metrics for LDA
+lda_metrics <- lda_predictions %>%
+  metrics(truth = SEGRADES, estimate = predicted_class)
+
+# Compute metrics for QDA
+qda_metrics <- qda_predictions %>%
+  metrics(truth = SEGRADES, estimate = predicted_class)
+
+# Display metrics
+print(lda_metrics)
+print(qda_metrics)
+```
+**Based on these two models, LDA outperformed the QDA since the accuracy of LDA is 59.82% as compared to QDA which gave 52.71%**
+
+## Their confusion matrix
+```{r}
+# LDA Confusion Matrix
+lda_conf_matrix <- lda_predictions %>%
+  conf_mat(truth = SEGRADES, estimate = predicted_class)
+
+qda_conf_matrix <- qda_predictions %>%
+  conf_mat(truth = SEGRADES, estimate = predicted_class)
+
+print(lda_conf_matrix)
+print(qda_conf_matrix)
+
+# Plot LDA Confusion Matrix
+autoplot(lda_conf_matrix, type = "heatmap") +
+  scale_fill_gradient(low = "white", high = "blue") +
+  labs(title = "LDA Confusion Matrix")
+
+# Plot QDA Confusion Matrix
+autoplot(qda_conf_matrix, type = "heatmap") +
+  scale_fill_gradient(low = "white", high = "red") +
+  labs(title = "QDA Confusion Matrix")
+```
+
+**Both models show strong performance in predicting "Mostly A's," but there is noticeable confusion when classifying the other categories. LDA tends to perform slightly better for "Mostly A's" and "Mostly B's," while QDA has slightly higher misclassification for "Mostly C's." The models may benefit from further tuning or feature adjustments to reduce misclassifications, especially for the "Mostly B's" and "Mostly C's" classes.**
+
+## ROC Curves
+```{r}
+# ROC for LDA
+lda_roc <- lda_predictions %>%
+  roc_curve(truth = SEGRADES, 
+            `.pred_Mostly A's`, 
+            `.pred_Mostly B's`, 
+            `.pred_Mostly C's`, 
+            `.pred_Mostly D's or lower`)
+
+ggplot(lda_roc, aes(x = 1 - specificity, y = sensitivity, color = .level)) +
+  geom_path(size = 1) +
+  geom_abline(linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "ROC Curve for LDA", x = "1 - Specificity", y = "Sensitivity")
+
+# ROC for QDA
+qda_roc <- qda_predictions %>%
+  roc_curve(truth = SEGRADES, 
+            `.pred_Mostly A's`, 
+            `.pred_Mostly B's`, 
+            `.pred_Mostly C's`, 
+            `.pred_Mostly D's or lower`)
+
+ggplot(qda_roc, aes(x = 1 - specificity, y = sensitivity, color = .level)) +
+  geom_path(size = 1) +
+  geom_abline(linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "ROC Curve for QDA", x = "1 - Specificity", y = "Sensitivity")
+```
+
+
+## Comparing accuracy
+```{r}
+# Accuracy for LDA
+lda_accuracy <- lda_predictions %>%
+  accuracy(truth = SEGRADES, estimate = predicted_class)
+
+# Accuracy for QDA
+qda_accuracy <- qda_predictions %>%
+  accuracy(truth = SEGRADES, estimate = predicted_class)
+
+# Plot accuracy comparison
+accuracy_results <- tibble(
+  Model = c("LDA", "QDA"),
+  Accuracy = c(lda_accuracy$.estimate, qda_accuracy$.estimate)
+)
+
+ggplot(accuracy_results, aes(x = Model, y = Accuracy, fill = Model)) +
+  geom_bar(stat = "identity", show.legend = FALSE) +
+  geom_text(aes(label = sprintf("%.2f", Accuracy)), vjust = -0.5, size = 5) + # Display accuracy on bars
+  labs(title = "LDA vs QDA Accuracy", x = "Model", y = "Accuracy") +
+  ylim(0, 0.65) + # Set y-axis scale to reach 0.65
+  theme_minimal()
+```
+
+**LDA outperformed QDA based on the accuracy plot above**
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Model 3: Poisson regression Model
+## Making the response variable an integer for the poisson regression
+```{r}
+# Convert SEGRADES to numeric integer representation
+train_data$SEGRADES <- factor(train_data$SEGRADES, 
+                              levels = c("Mostly A's", "Mostly B's", "Mostly C's", "Mostly D's or lower", "No Letter Grades"))
+
+# Map the factor levels to numeric values
+train_data$SEGRADES <- as.integer(train_data$SEGRADES)
+
+# Poisson regression model
+poisson_model <- poisson_reg() %>%
+  set_engine("glm") %>%
+  set_mode("regression")
+
+# Fit the model using the training data
+poisson_fit <- poisson_model %>%
+  fit(SEGRADES ~ SEENJOY + FSSPORTX + FHHELP + TTLHHINC + CSEX + DSBLTY + FODINNERX + PARGRADEX, data = train_data)
+```
+
+
+```{r}
+tidy(poisson_fit)
+```
+
+
+## Predictions
+```{r}
+# Make predictions on the test data
+test_predictions <- predict(poisson_fit, test_data) %>%
+  bind_cols(test_data) %>%
+  mutate(.pred = round(.pred))
+
+# View the updated predictions
+test_predictions
+```
+
+## summary of the predictions
+```{r}
+summary(test_predictions$.pred)
+```
+
+## Plot residuals vs fitted values
+```{r}
+# Plot residuals vs fitted values
+residuals <- residuals(poisson_fit$fit)
+fitted_values <- predict(poisson_fit, train_data)$.pred
+
+ggplot(data = data.frame(fitted_values, residuals), aes(x = fitted_values, y = residuals)) +
+  geom_point(alpha = 0.5) +
+  geom_hline(yintercept = 0, color = "red", linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Residuals vs Fitted Values", x = "Fitted Values", y = "Residuals")
+```
+
+## Histogram of residuals with normality curve
+```{r}
+# Histogram of residuals with normality curve
+ggplot(data.frame(residuals), aes(x = residuals)) +
+  geom_histogram(aes(y = ..density..), bins = 30, fill = "skyblue", color = "black") +
+  stat_function(fun = dnorm, 
+                args = list(mean = mean(residuals), sd = sd(residuals)), 
+                color = "red", size = 1) +
+  theme_minimal() +
+  labs(title = "Histogram of Residuals", 
+       x = "Residuals", 
+       y = "Density")
+```
+
+**A slight skewness is observed here**
+
+```{r}
+# QQ plot of residuals
+qqnorm(residuals)
+qqline(residuals, col = "red")
+```
+
+**Most points lie along the line showing a normal distribution**
+
+## Checking dispersion
+```{r}
+# Calculate dispersion statistic
+dispersion <- sum(residuals^2) / poisson_fit$fit$df.residual
+dispersion  # Value close to 1 indicates no overdispersion, >1 indicates overdispersion
+```
+
+**Since your dispersion statistic is less than 1, it indicates underdispersion in the model, which suggests that your model may be too simple or conservative, not capturing enough of the data's variability and it's generally not a big issue, but it could be worth exploring alternative models, or check if the data transformation or model specifications are too restrictive and that is why our final model is multinorm regression model.**
+
+
+# Models Comparisons
+```{r}
+# Extract Accuracy, Kappa, and AUC for each model
+multinom_results <- multinom_predictions %>%
+  metrics(truth = SEGRADES, estimate = predicted_class)
+
+qda_results <- qda_predictions %>%
+  metrics(truth = SEGRADES, estimate = predicted_class)
+
+lda_results <- lda_predictions %>%
+  metrics(truth = SEGRADES, estimate = predicted_class)
+
+# Get AUC separately
+multinom_auc <- multinom_predictions %>%
+  roc_auc(truth = SEGRADES, 
+          `.pred_Mostly A's`, 
+          `.pred_Mostly B's`, 
+          `.pred_Mostly C's`, 
+          `.pred_Mostly D's or lower`)
+
+qda_auc <- qda_predictions %>%
+  roc_auc(truth = SEGRADES, 
+          `.pred_Mostly A's`, 
+          `.pred_Mostly B's`, 
+          `.pred_Mostly C's`, 
+          `.pred_Mostly D's or lower`)
+
+lda_auc <- lda_predictions %>%
+  roc_auc(truth = SEGRADES, 
+          `.pred_Mostly A's`, 
+          `.pred_Mostly B's`, 
+          `.pred_Mostly C's`, 
+          `.pred_Mostly D's or lower`)
+
+# Combine metrics into a tibble
+model_comparison_table <- tibble(
+  Model = c("Multinomial Regression", "QDA", "LDA"),
+  Accuracy = c(multinom_results %>% filter(.metric == "accuracy") %>% pull(.estimate),
+               qda_results %>% filter(.metric == "accuracy") %>% pull(.estimate),
+               lda_results %>% filter(.metric == "accuracy") %>% pull(.estimate)),
+  Kappa = c(multinom_results %>% filter(.metric == "kap") %>% pull(.estimate),
+            qda_results %>% filter(.metric == "kap") %>% pull(.estimate),
+            lda_results %>% filter(.metric == "kap") %>% pull(.estimate)),
+  AUC = c(multinom_auc$.estimate,
+          qda_auc$.estimate,
+          lda_auc$.estimate)
+)
+
+# Display the table
+print(model_comparison_table)
+```
+
+## Create Visualization for Model Comparison
+```{r}
+# Reshape data for visualization
+model_comparison_long <- model_comparison_table %>%
+  pivot_longer(cols = c(Accuracy, Kappa, AUC), names_to = "Metric", values_to = "Value")
+
+# Create the bar plot
+ggplot(model_comparison_long, aes(x = Model, y = Value, fill = Metric)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_text(aes(label = round(Value, 3)), vjust = -0.5, position = position_dodge(0.9)) + 
+  labs(title = "Model Comparison: Accuracy, Kappa, and AUC",
+       x = "Model",
+       y = "Metric Value") +
+  theme_minimal() +
+  scale_fill_manual(values = c("Accuracy" = "blue", "Kappa" = "green", "AUC" = "red"))
+```
+
+
+## Generate Side-by-Side ROC Curves
+```{r}
+# Combine all ROC curves into one plot
+multinom_roc <- multinom_predictions %>%
+  roc_curve(truth = SEGRADES, `.pred_Mostly A's`, `.pred_Mostly B's`, `.pred_Mostly C's`, `.pred_Mostly D's or lower`) %>%
+  mutate(Model = "Multinomial Regression")
+
+qda_roc <- qda_predictions %>%
+  roc_curve(truth = SEGRADES, `.pred_Mostly A's`, `.pred_Mostly B's`, `.pred_Mostly C's`, `.pred_Mostly D's or lower`) %>%
+  mutate(Model = "QDA")
+
+lda_roc <- lda_predictions %>%
+  roc_curve(truth = SEGRADES, `.pred_Mostly A's`, `.pred_Mostly B's`, `.pred_Mostly C's`, `.pred_Mostly D's or lower`) %>%
+  mutate(Model = "LDA")
+
+# Combine ROC data
+all_roc <- bind_rows(multinom_roc, qda_roc, lda_roc)
+
+# Plot ROC curves
+ggplot(all_roc, aes(x = 1 - specificity, y = sensitivity, color = Model)) +
+  geom_path(size = 1) +
+  geom_abline(linetype = "dashed") +
+  labs(title = "ROC Curve Comparison for Multinomial, QDA, and LDA",
+       x = "1 - Specificity", y = "Sensitivity") +
+  theme_minimal()
+```
+
+
+# Conlusion on model comparison
+Among the three models compared—**Multinomial Regression, QDA, and LDA**—LDA emerges as the best-performing model overall. It achieves the highest **AUC (0.731)**, indicating superior ability to distinguish between academic performance categories. Additionally, LDA has the highest **Kappa (0.257)**, meaning it has the strongest agreement between predicted and actual grades beyond random chance. Although its **accuracy (59.82%)** is slightly lower than Multinomial Regression (60.77%), the difference is minimal. **Multinomial Regression follows closely** with a comparable **AUC (0.713)** and **Kappa (0.255)**, suggesting it performs similarly to LDA but does not provide a significant advantage. However, **QDA is the weakest performer**, with the lowest **accuracy (52.71%)**, **Kappa (0.205)**, and **AUC (0.711)**, indicating that it struggles to classify student performance accurately. The poor performance of QDA may stem from its assumption of different covariance structures for each class, which may not align well with the dataset. Given these results, **LDA is the preferred model** due to its optimal balance of accuracy, consistency, and discrimination ability. **Multinomial Regression is a viable alternative**, but **QDA should be avoided** due to its lower classification performance. Overall, **LDA provides the best trade-off between accuracy and interpretability for predicting academic performance.**
+
+
+# Overall conclusion
+In this project, we have explored the factors influencing student academic performance using the PFI dataset. We employed Generalized Linear Models (GLMs), including Multinomial Regression, Linear Discriminant Analysis (LDA), and Quadratic Discriminant Analysis (QDA) to model student grades (SEGRADES) based on various predictors such as enjoyment of school (SEENJOY), parental and school involvement, household income (TTLHHINC), disability status, gender, and family dinner frequency.
+
+We evaluated model performance using Accuracy, Kappa, and AUC metrics, with Multinomial Regression performing the best in terms of accuracy (0.608) and QDA having the lowest accuracy (0.527). Additionally, we assessed the residuals for normality using histograms and improved the visualization by adding normality lines. Predictions from the Poisson regression model were also rounded for better interpretability.
+
+## Remaining Tasks
+1. Model Refinement: Further feature selection and engineering to optimize model performance.
+
+2. Hyperparameter Tuning: Adjusting model parameters to improve classification performance.
+
+## Research Gaps
+1. Feature Interactions: The study does not explicitly explore interaction effects between variables, which could enhance the predictive power of the models.
+
+2. Alternative Modeling Approaches: The study relies mainly on GLMs and discriminant analysis; deep learning or ensemble methods (e.g., random forests, boosting) could be explored for potentially better predictive accuracy.
+
+3. Longitudinal Data Analysis: The current dataset provides a snapshot of student performance but does not track changes over time. A longitudinal study could provide more insights into causal relationships.
+
+## Recommendations
+1. Feature Engineering: Consider creating new variables or interactions to improve model interpretability and performance.
+
+2. Data Augmentation: Acquiring additional datasets or using synthetic data generation techniques could enhance model robustness.
+
+3. Algorithmic Diversity: Comparing GLMs with other machine learning techniques (e.g., Random Forest, Gradient Boosting, Neural Networks) could provide better predictive performance.
+
+4. Policy Implications: The findings should be translated into actionable recommendations for educators and policymakers, emphasizing interventions that improve student engagement and parental involvement.
+
+## Limitations
+1. Potential Bias in Data: The dataset may have inherent biases based on self-reported responses.
+
+2. Assumptions of GLMs: The assumptions of multinomial regression, including independence of observations and no multicollinearity, may not be perfectly met.
+
+3. Limited Generalizability: The dataset may not represent all schools or demographic groups, affecting external validity.

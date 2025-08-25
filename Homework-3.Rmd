@@ -1,0 +1,364 @@
+---
+title: "Homework-3"
+author: "Dancun Juma"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r warning=FALSE,message=FALSE,include=FALSE}
+# Load necessary libraries
+library(tidymodels)
+library(dplyr)
+library(ggplot2)
+library(broom)
+library(caret)
+library(flextable)
+library(GGally)
+library(car)
+```
+
+# Loading the dataset
+```{r}
+# Load the Diamonds dataset
+data("diamonds")
+set.seed(1995)
+diamond_subset <- diamonds %>%
+  sample_n(1000)
+
+head(diamond_subset)
+```
+
+# Variables descriptions
+```{r}
+# Create a data frame with variable descriptions
+variable_description <- data.frame(
+  Variable = c("carat", "cut", "color", "clarity", "depth", "table", "price", "x", "y", "z"),
+  Type = c(
+    "Numeric (dbl)", 
+    "Ordinal", 
+    "Ordinal", 
+    "Ordinal", 
+    "Numeric (dbl)", 
+    "Numeric (dbl)", 
+    "Integer", 
+    "Numeric (dbl)", 
+    "Numeric (dbl)", 
+    "Numeric (dbl)"
+  ),
+  Description = c(
+    "Weight of the diamond in carats",
+    "Quality of the cut (Fair, Good, Very Good, Premium, Ideal)",
+    "Diamond color, from J (worst) to D (best)",
+    "Clarity of the diamond (IF, VVS1, VVS2, VS1, VS2, SI1, SI2, I1)",
+    "Total depth percentage = (z / mean(x, y)) * 100",
+    "Width of the top of the diamond's table as a percentage of the diameter",
+    "Price of the diamond in US dollars",
+    "Length of the diamond (in mm)",
+    "Width of the diamond (in mm)",
+    "Depth of the diamond (in mm)"
+  )
+)
+
+# Create a flextable for the variable description
+flextable_description <- flextable(variable_description) %>%
+  set_header_labels(
+    Variable = "Variable Name",
+    Type = "Data Type",
+    Description = "Description"
+  ) %>%
+  autofit() %>%
+  theme_vanilla()
+
+# Print the flextable
+flextable_description
+```
+
+
+# 1) Exploration and Model Identification
+## Exploration of the Data Structure
+```{r}
+# Explore the data structure
+glimpse(diamond_subset)
+```
+
+**The dataset contains 1000 rows and 10 columns, summarizing diamond characteristics. Key variables include `carat` (numeric, weight of the diamond), `cut` (ordinal, quality rating), `color` (ordinal, graded from J to D), and `clarity` (ordinal, describing diamond inclusions). Other quantitative attributes include `depth` (numeric, percentage), `table` (numeric, table width percentage), and `price` (integer, USD). Dimensions are captured by `x`, `y`, and `z`, representing length, width, and depth in millimeters. The dataset provides a rich mix of numeric and ordinal variables, making it well-suited for statistical modeling, including regression analysis and exploring relationships between diamond features and price.**
+
+
+## Summary statistics
+```{r}
+# Summary statistics of the dataset
+summary(diamond_subset)
+```
+
+**carat: Diamond weight, ranging from 0.23 to 3.67 carats (Mean: 0.785). Larger carats indicate heavier diamonds.**
+
+**cut: Quality of cut, most common is "Ideal" (401), with fewer "Fair" (36).**
+
+**color: Color grade, ranging from best (D) to worst (J), with E being most frequent.**
+
+**clarity: Diamond clarity; common grades are VS2 (250) and SI1 (223), showing inclusion levels.**
+
+**depth: Depth percentage (55.9–67.8, Mean: 61.8), indicating diamond proportion.**
+
+**table: Table width percentage (52–66, Mean: 57.45), reflecting diamond's flat top area.**
+
+**price: Diamond cost in USD, varying widely ($357–$18,532, Mean: $3,810.5).**
+
+**x: Diamond length (3.87–9.86 mm, Mean: 5.69).**
+
+**y: Diamond width (3.90–9.81 mm, Mean: 5.69).**
+
+**z: Diamond depth (2.42–6.13 mm, Mean: 3.51).**
+
+
+```{r}
+# Check for missing values
+sum(is.na(diamond_subset))
+```
+
+**There are no missing values**
+
+## Visualize relationships
+```{r warning=FALSE,message=FALSE}
+# Now create a ggpairs plot with 'mpg' as the first column
+ggpairs_plot <- ggpairs(
+  diamond_subset,
+  columns = c("carat", "price", "cut"),
+  title = "Pairwise Relationships"
+)
+
+# show the plot
+print(ggpairs_plot)
+```
+
+
+**The ggpairs plot visualizes pairwise relationships between price, carat, and cut in the diamond dataset. The scatter plot between price and carat indicates a strong positive correlation (0.930), suggesting that as carat increases, price also rises. The density plots on the diagonal provide insights into data distribution, with price showing a right-skewed distribution and carat having a similar skew. The box plots illustrate how price and carat vary across different cut categories, with "Ideal" being the most frequent cut type. The spread in prices is highest for lower-quality cuts, while carat remains relatively stable across cuts. This visualization helps identify trends and potential non-linear relationships in the data, emphasizing that carat is a dominant factor influencing price, while cut has a less pronounced effect.**
+
+```{r}
+# Scatter plot for price (dependent) vs carat (quantitative predictor)
+ggplot(diamond_subset, aes(x = carat, y = price)) +
+  geom_point(alpha = 0.5) +
+  geom_abline(slope = 1, intercept = 1, color = "blue") +
+  labs(title = "Scatter Plot: Carat vs Price", x = "Carat", y = "Price")
+```
+
+
+**The scatter plot visualizes the relationship between `carat` (diamond weight) and `price`. The positive trend suggests that as carat increases, price also increases. The relationship appears nonlinear, with price rising more steeply for larger carats. There's greater price variability among larger diamonds, likely influenced by other factors like `cut, clarity, and color`. The clustering of points at lower carat values suggests that smaller diamonds are more common. Some high-priced outliers indicate premium diamonds with exceptional quality attributes.**
+
+```{r}
+# Boxplot for price (dependent) vs cut (qualitative predictor)
+ggplot(diamond_subset, aes(x = cut, y = price)) +
+  geom_boxplot() +
+  labs(title = "Boxplot: Cut vs Price", x = "Cut", y = "Price")
+```
+
+**The boxplot visualizes the distribution of `diamond prices` across different `cut` categories: `Fair, Good, Very Good, Premium, and Ideal`. The median price increases slightly with better cut quality, though variability is high across all categories. `Fair-cut diamonds` tend to have lower prices, while `Premium and Ideal` cuts exhibit a wider range with higher-priced outliers. The interquartile range (IQR) is largest for `Good and Premium` cuts, indicating greater price dispersion. Numerous outliers exist across all categories, particularly in `higher-quality cuts`, suggesting that factors like `carat, clarity, and color` influence pricing beyond cut alone. The trend implies that better-cut diamonds generally cost more, but exceptions exist due to additional quality factors.**
+
+
+```{r}
+# Interaction plot: Cut and carat
+interaction.plot(diamond_subset$cut, diamond_subset$carat, diamond_subset$price, fun = mean)
+```
+
+**The interaction plot shows the relationship between diamond cut (categorical predictor) and carat (continuous predictor) in predicting price. Each line represents a unique carat value. Price varies significantly across cuts, with higher-quality cuts (e.g., "Ideal") generally commanding higher prices. However, the slopes and overlaps suggest the effect of carat weight on price differs by cut quality. Some lines intersect, indicating non-linear interactions. This highlights the importance of considering both predictors and their interaction to accurately model diamond prices.**
+
+# 2) Model Assessment
+
+```{r}
+# Define the multiple linear regression model specification
+lm_spec <- linear_reg() %>%
+  set_mode("regression") %>%
+  set_engine("lm")
+
+# Fit the model with both quantitative (carat) and qualitative (cut) predictors, including their interaction
+full_model <- lm_spec %>%
+  fit(carat ~ price + cut + price:cut, data = diamond_subset)
+
+# Extract and format the tidy output of the model
+tidy_full <- tidy(full_model) %>%
+  mutate(p.value = formatC(p.value, format = "f", digits = 4))
+
+# Print the model output
+print(tidy_full)
+```
+
+$$
+\widehat{carat} = 0.3895 + 0.0001153 \times price - 0.1425 \times cut.L + 0.06246 \times cut.Q - 0.05533 \times cut.C + 0.01236 \times cut^4 - 0.000005575 \times price \times cut.L + 0.0000005836 \times price \times cut.Q - 0.000006992 \times price \times cut.C - 0.000006263 \times price \times cut^4
+$$
+
+## Residual plot
+```{r}
+# Extract the lm object from the tidymodels fitted model
+lm_model <- full_model$fit
+
+# Base R diagnostic plots for the extracted lm model
+par(mfrow = c(2, 2))  
+plot(lm_model)
+```
+
+**The Residuals vs. Fitted plot shows non-random patterns, indicating potential non-linearity. The Q-Q plot reveals deviations from normality, especially in the tails. The Scale-Location plot suggests heteroscedasticity, as variance increases with fitted values. The Residuals vs. Leverage plot highlights influential points, with some exceeding Cook’s distance, suggesting they significantly impact the model. Model adjustments may be needed for better performance.**
+
+```{r}
+# Define the residual analysis function
+residual_analysis <- function(model = NULL) {
+  # Ensure the input is a valid model
+  if ("model_fit" %in% class(model)) {
+    model <- model$fit
+  }
+  if (!inherits(model, "lm")) {
+    stop("The provided model is not an lm object.")
+  }
+  
+  # Create a data frame for residual analysis
+  df <- data.frame(
+    Prediction = predict(model),
+    Residual = rstandard(model),
+    Fitted = fitted(model),
+    Observed = model$model[[1]] # Extract observed values
+  )
+  
+  # Create diagnostic plots
+  p1 <- ggplot(df, aes(x = Prediction, y = Residual)) +
+    geom_point(alpha = 0.6) +
+    geom_hline(yintercept = 0, color = "red", linetype = "dashed") +
+    labs(title = "Residuals vs Predictions", x = "Predicted Values", y = "Standardized Residuals") +
+    theme_minimal()
+  
+  p2 <- ggplot(df, aes(x = Fitted, y = Residual)) +
+    geom_point(alpha = 0.6) +
+    geom_hline(yintercept = 0, color = "red", linetype = "dashed") +
+    labs(title = "Residuals vs Fitted Values", x = "Fitted Values", y = "Standardized Residuals") +
+    theme_minimal()
+  
+  p3 <- ggplot(df, aes(sample = Residual)) +
+    stat_qq() +
+    stat_qq_line(color = "red", linetype = "dashed") +
+    labs(title = "Q-Q Plot of Residuals") +
+    theme_minimal()
+  
+  # Combine plots using gridExtra
+  gridExtra::grid.arrange(p1, p2, p3, ncol = 3)
+}
+
+residual_analysis(full_model)
+```
+
+**Based on the plot above, the "Residuals vs. Predictions" and "Residuals vs. Fitted Values" plots reveal a funnel shape, suggesting heteroscedasticity, where variance increases with predicted values. This indicates the model may not adequately capture variability. The Q-Q plot of residuals shows deviations from normality, particularly in the tails, implying potential issues with normality assumptions. The presence of outliers and non-random residual dispersion suggests the model may benefit from transformation or additional predictor variables. Addressing these issues could improve model performance and predictive accuracy, possibly through transformations or alternative modeling approaches like generalized linear models.**
+
+# 3) Accuracy of the Model
+```{r}
+# Split data into training and test sets
+set.seed(12345)
+data_split <- initial_split(diamond_subset, prop = 0.8)
+train_data <- training(data_split)
+test_data <- testing(data_split)
+
+# Fit the model on training data
+train_model <- lm_spec %>%
+  fit(carat ~ price + cut + price:cut, data = train_data)
+
+# Predict on test data
+test_predictions <- predict(train_model, new_data = test_data) %>%
+  bind_cols(test_data)
+
+# Compute accuracy metrics
+metrics <- metric_set(rmse, rsq)
+accuracy_results <- metrics(test_predictions, truth = carat, estimate = .pred)
+
+# Print accuracy results
+print(accuracy_results)
+```
+
+**The model's RMSE of 0.1633 indicates the better prediction error, with lower values indicating better fit. The R-squared value of 0.8863 suggests the model explains 89% of the variance in carat, demonstrating a strong relationship between the predictors and the target variable. Overall, the model shows good performance with minimal error and high explanatory power.**
+
+
+# 4) Predictions of New Observations
+
+```{r}
+# Create new observation(s)
+new_data <- data.frame(
+  price = c(10010, 7001),
+  cut = c("Ideal", "Fair")
+)
+
+# Predict price for the new data
+new_predictions <- predict(full_model, new_data = new_data, type = "numeric")
+
+# Add predictions to the new_data dataframe
+new_data <- new_data %>%
+  mutate(predicted_carat = new_predictions$.pred)
+
+# Print predictions
+print(new_data)
+```
+
+**A diamond worth $10010 and Ideal cut is predicted to have a carat of 1.4091.**
+
+**A diamond with $7001 and Fair cut is predicted to have a carat of 1.3763.**
+
+## CI and Predictions
+```{r}
+result <- cbind(
+  predict(full_model, new_data = diamond_subset),
+  predict(full_model, new_data = diamond_subset, type = "conf_int"),
+  predict(full_model, new_data = diamond_subset, type = "pred_int")
+)
+
+head(result, 5)
+```
+
+**Narrower intervals indicate higher precision, while wider intervals suggest greater uncertainty. In general, the model provides reasonable estimates, but variability in prediction intervals suggests room for refinement.**
+
+# 5) Interpretation of Coefficients
+
+```{r}
+# Interpreting the coefficients of the model
+tidy_full %>%
+  mutate(
+    significance = case_when(
+      p.value < 0.001 ~ "***",
+      p.value < 0.01 ~ "**",
+      p.value < 0.05 ~ "*",
+      TRUE ~ ""
+    )
+  ) %>%
+  select(term, estimate, std.error, p.value, significance) %>%
+  print()
+```
+
+Intercept (0.3895, p < 0.001): This represents the estimated carat weight when all predictor variables (price and cut contrasts) are zero. While not directly meaningful due to categorical variables, it serves as a baseline reference.
+
+Price (0.0001153, p < 0.001): A one-unit increase in price increases the predicted carat by 0.0001153, indicating a strong positive relationship between price and carat size, as expected.
+
+Cut.L (-0.1425, p < 0.001): The linear contrast for cut shows that higher-quality cuts tend to have slightly smaller carat weights, likely due to better proportions optimizing brilliance rather than raw size.
+
+Cut.Q (0.06246, p = 0.0164): The quadratic contrast suggests a non-linear effect of cut on carat, indicating that mid-tier cuts may have slightly higher carat sizes compared to extremes (best or worst cuts).
+
+Cut.C (-0.05533, p = 0.0164): This cubic contrast captures complex patterns in how cut affects carat. A negative value suggests that certain intermediate cut grades may have slightly lower carat sizes.
+
+Cut⁴ (0.01236, p = 0.5113, ns): The fourth-degree contrast is not statistically significant, indicating that additional complexity in cut’s effect on carat is unnecessary.
+
+Price:Cut.L (-0.000005575, p = 0.3004, ns): This interaction term suggests that the effect of price on carat differs across cut qualities, but the lack of significance means the effect is weak.
+
+Price:Cut.Q (0.0000005836, p = 0.9040, ns): The interaction between price and quadratic cut contrast is also non-significant, indicating that price’s effect on carat doesn’t meaningfully vary across mid-tier cut levels.
+
+Price:Cut.C (-0.000006992, p = 0.0829): The cubic interaction term is marginally significant, suggesting price influences carat differently at specific cut levels, but the effect is small.
+
+Price:Cut⁴ (-0.000006263, p = 0.0632): The fourth-degree interaction term is nearly significant, implying minor non-linear effects of price across cut categories.
+
+
+# Visualization of Predictions
+```{r}
+# Scatter plot of predicted vs actual values for test data
+ggplot(test_predictions, aes(x = .pred, y = carat)) +
+  geom_point(alpha = 0.5) +
+  geom_abline(slope = 1, intercept = 0, color = "red") +
+  labs(title = "Predicted vs Actual Values", x = "Predicted Carat", y = "Actual Carat")
+```
+
+**The plot shows predictions perfectly match actual values. The clustering of points around this line indicates that the model performs well in predicting carat weight. However, there are some deviations, particularly at higher carat values, suggesting potential underestimation or overestimation in some cases. The spread of points around the line reflects variance in prediction accuracy, implying that while the model captures general trends well, further refinements may improve precision.**

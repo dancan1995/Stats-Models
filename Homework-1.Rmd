@@ -1,0 +1,503 @@
+---
+title: "Homework-1"
+author: "Dancun Juma"
+date: "`r Sys.Date()`"
+output:pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## TASK 1
+```{r, warning=FALSE, include=FALSE,message=FALSE}
+# Load necessary libraries
+library(ISLR)         # For Auto dataset
+library(tidyverse)    # For ggplot2 and data wrangling
+library(mosaic)
+library(tidymodels)
+library(ggformula)
+
+# Load the Auto dataset
+data("Auto")
+auto_data <- Auto
+```
+
+```{r}
+head(auto_data)
+```
+
+```{r univariate-plots}
+auto_data %>% 
+  gf_histogram(~mpg)
+auto_data %>% 
+  gf_histogram(~horsepower)
+```
+
+
+```{r relationship-plot}
+auto_data %>% 
+  gf_point(mpg~horsepower)
+```
+
+```{r challenge}
+auto_data %>%
+  summarise(mean=mean(mpg),sd=sd(mpg))
+
+auto_data %>%
+  summarise(mean=mean(horsepower),sd=sd(horsepower))
+
+with(auto_data,cor(mpg,horsepower))
+```
+
+```{r}
+favstats(~mpg,data=auto_data)
+favstats(~horsepower,data=auto_data)
+```
+
+# By General Dataset without splitting
+### a. Perform Simple Linear Regression and Analyze the Output
+```{r parsnip-spec}
+lm_spec <- linear_reg() %>%
+  set_mode("regression") %>%
+  set_engine("lm")
+
+lm_spec
+```
+##Approach 1
+```{r}
+# Fit the simple linear regression model
+slr_mod <- lm(mpg ~ horsepower, data = auto_data)
+
+# Display the regression model summary
+tidy(slr_mod)
+```
+
+$$\widehat{mpg} = 39.9359 - 0.1578 \times horsepower$$
+
+### i. Is there a relationship between the predictor (horsepower) and the response (mpg)?
+
+Yes, the p-value associated with the horsepower coefficient is < 2e-16, which is highly significant, indicating a strong relationship between horsepower and mpg.
+
+### ii. How strong is the relationship?
+
+The multiple R-squared value is 0.6059, which means that approximately 60.6% of the variability in mpg can be explained by horsepower. This is a moderate relationship.
+
+### iii. Is the relationship between the predictor and the response positive or negative?
+
+The coefficient for horsepower is negative (-0.157845), indicating a negative relationship between horsepower and mpg. As horsepower increases, mpg tends to decrease.
+
+### iv. What is the predicted mpg associated with a horsepower of 98?
+
+To predict mpg for a horsepower of 98, we can use the regression equation:
+mpg=39.935861−0.157845×horsepower
+
+For horsepower = 98:
+mpg=39.935861−0.157845×98=39.935861−15.482=24.453
+
+The predicted mpg is approximately 24.45.
+
+### b. Plot Response vs. Predictor with Regression Line
+```{r}
+# Plot mpg vs. horsepower and add regression line
+plot(auto_data$horsepower, auto_data$mpg,
+     xlab = "Horsepower",
+     ylab = "Miles Per Gallon (mpg)",
+     main = "MPG vs Horsepower with Regression Line",
+     pch = 16, col = "blue")
+
+# Add regression line
+abline(slr_mod, col = "red", lwd = 2)
+```
+
+### c. Diagnostic Plots for Linear Regression Fit
+```{r}
+# Generate diagnostic plots
+par(mfrow = c(2, 2))  # Arrange plots in a 2x2 grid
+plot(slr_mod)
+
+# (c) Comments:
+# Analyze residuals vs fitted, normal Q-Q, scale-location, and residuals vs leverage.
+# Note any potential issues with linearity, homoscedasticity, normality of errors, or outliers.
+```
+
+### d. Generate a ggplot with Raw Data, Prediction Line, and Confidence/Prediction Intervals
+```{r}
+# Add predictions and intervals to the dataset
+predictions <- predict(slr_mod, auto_data, interval = "prediction")
+auto_data <- auto_data %>%
+  mutate(.fitted = predictions[, "fit"],
+         .pred_lower = predictions[, "lwr"],
+         .pred_upper = predictions[, "upr"])
+
+# Generate ggplot
+ggplot(auto_data, aes(x = horsepower, y = mpg)) +
+  geom_point(alpha = 0.6, color = "blue") +
+  geom_line(aes(y = .fitted), color = "red", size = 1) +
+  geom_ribbon(aes(ymin = .pred_lower, ymax = .pred_upper), alpha = 0.2, fill = "grey") +
+  labs(
+    title = "MPG vs Horsepower with Prediction Intervals",
+    x = "Horsepower",
+    y = "Miles Per Gallon (mpg)"
+  ) +
+  theme_minimal()
+
+# (d) Comments:
+# - The red line shows the predicted mpg based on horsepower.
+# - The shaded area represents the prediction interval (range of possible values for new observations).
+# - Observe the decreasing mpg as horsepower increases, indicating a negative relationship.
+```
+
+```{r}
+tidy(slr_mod) %>% str()
+```
+
+# Assessing
+```{r glance-mod}
+glance(slr_mod)
+```
+
+#### Assess with test/train
+```{r}
+# Set seed before random split
+set.seed(15)
+
+# Put 80% of the data into the training set
+auto_split <- initial_split(auto_data, prop = 0.80)
+
+# Assign the two splits to data frames - with descriptive names
+auto_train <- training(auto_split)
+auto_test <- testing(auto_split)
+
+# Check the splits
+head(auto_train)
+head(auto_test)
+```
+
+#### Train and fit linear model
+```{r}
+# Fit the model using the training data
+slr_train <- lm(mpg ~ horsepower, data = auto_train)
+
+# Summarize the model fit
+tidy(slr_train)
+```
+
+#### Model Evaluation on Test Data
+```{r}
+# Augment the model to include predictions on the test data
+test_aug <- augment(slr_train, new_data = auto_test)
+
+# Check the augmented results
+head(test_aug)
+```
+#### R-Squared for the Test Data
+```{r}
+glance(slr_train)
+```
+
+#### Check for Linearity (Residuals vs. Fitted)
+```{r augment}
+train_aug <- augment(slr_train, new_data = auto_train)
+head(train_aug)
+```
+
+```{r fitted-residual}
+ggplot(data = train_aug, aes(x = .fitted, y = .resid)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
+  xlab("Fitted values") +
+  ylab("Residuals")
+```
+
+```{r residual-histogram}
+ggplot(data = train_aug, aes(x = .resid)) +
+  geom_histogram(binwidth = 0.25) +
+  xlab("Residuals")
+train_aug %>%
+  gf_histogram(~.resid,binwidth=.25) %>%
+  gf_labs(x="Residuals")
+```
+
+```{r}
+train_aug %>%
+  gf_qq(~.resid) %>%
+  gf_qqline()
+```
+## 5 Inference: Confidence Intervals
+
+```{r}
+tidy(slr_mod,conf.int=TRUE)
+```
+
+Next we look at predictions at the original data. The predict() function didn't seem to work, so try using classic functions.
+
+```{r}
+lm.fit <- lm(mpg~horsepower,data=auto_data)
+cbind(predict(lm.fit,interval="confidence"),
+      predict(lm.fit,interval="predict")) %>% as_tibble()
+```
+
+
+#### Confidence Intervals for Model Coefficients
+```{r}
+# Get confidence intervals for the coefficients
+tidy(slr_train, conf.int = TRUE)
+
+# Predictions with confidence intervals and prediction intervals
+cbind(
+  predict(slr_train, new_data = auto_data, interval = "confidence"),
+  predict(slr_train, new_data = auto_data, interval = "predict")
+)
+```
+
+
+#### Residuals Analysis Function
+```{r}
+# Define a function to simplify residuals analysis
+residualAnalysis <- function(model = NULL) {
+  if (!require(gridExtra)) stop('Install the gridExtra package.')
+  if (!require(ggformula)) stop('Install the ggformula package.')
+  
+  df <- data.frame(Prediction = predict(model),
+                   Residual = rstandard(model))
+  
+  p1 <- gf_point(Residual ~ Prediction, data = df) %>% gf_hline(yintercept = 0)
+  p2 <- gf_qq(~Residual, data = df) %>% gf_qqline()
+  
+  grid.arrange(p1, p2, ncol = 2)
+}
+
+# Apply the residual analysis function
+residualAnalysis(slr_train)
+```
+
+
+
+
+## TASK 2
+#### Subset the Dataset
+```{r}
+# Subset Diamonds Dataset
+data("diamonds")
+set.seed(1995)
+diamond_subset <- diamonds %>%
+  sample_n(1000) %>%
+  select(price, carat)
+```
+
+```{r}
+head(diamond_subset)
+```
+
+
+#### Exploratory Data Analysis (EDA)
+```{r}
+# Histogram of Price
+diamond_subset %>%
+  gf_histogram(~price, binwidth = 1000) %>%
+  gf_labs(title = "Distribution of Price")
+
+# Histogram of Carat
+diamond_subset %>%
+  gf_histogram(~carat, binwidth = 0.1) %>%
+  gf_labs(title = "Distribution of Carat")
+```
+
+#### Scatter Plot for Price vs. Carat
+```{r}
+# Scatter Plot: Price vs Carat
+diamond_subset %>%
+  gf_point(price ~ carat) %>%
+  gf_labs(
+    title = "Scatter Plot of Price vs. Carat",
+    x = "Carat",
+    y = "Price (USD)"
+  )
+```
+
+#### Summary Statistics and Correlation
+```{r}
+# Summary statistics for Price
+favstats(~price, data = diamond_subset)
+
+# Summary statistics for Carat
+favstats(~carat, data = diamond_subset)
+
+# Correlation between Price and Carat
+cor(diamond_subset$price, diamond_subset$carat)
+```
+
+#### Simple Linear Regression Model
+```{r}
+# Specify and Fit the Linear Model
+lm_model <- lm(price ~ carat, data = diamond_subset)
+
+# Display Regression Coefficients
+summary(lm_model)
+```
+
+$$\widehat{price} = -2458.19 + 8028 \times carat$$
+
+#### Model Predictions for Specific Values
+```{r}
+# Predict Price for Carat = 1.0
+predict(lm_model, newdata = data.frame(carat = 1.0))
+```
+
+#### Diagnostic Plots for Regression Model
+```{r}
+# Diagnostic Plots
+par(mfrow = c(2, 2))
+plot(lm_model)
+```
+
+#### Visualize the Regression Line
+```{r}
+# Scatter Plot with Regression Line
+ggplot(diamond_subset, aes(x = carat, y = price)) +
+  geom_point(alpha = 0.6, color = "blue") +
+  geom_smooth(method = "lm", color = "red", se = FALSE) +
+  labs(
+    title = "Price vs Carat with Regression Line",
+    x = "Carat",
+    y = "Price (USD)"
+  )
+```
+
+#### Confidence and Prediction Intervals
+```{r}
+# Add Predictions with Intervals
+diamond_subset <- diamond_subset %>%
+  mutate(
+    .fitted = predict(lm_model),
+    .pred_lower = predict(lm_model, interval = "prediction")[, "lwr"],
+    .pred_upper = predict(lm_model, interval = "prediction")[, "upr"]
+  )
+
+# Plot with Confidence and Prediction Intervals
+ggplot(diamond_subset, aes(x = carat, y = price)) +
+  geom_point(alpha = 0.6, color = "blue") +
+  geom_line(aes(y = .fitted), color = "red") +
+  geom_ribbon(aes(ymin = .pred_lower, ymax = .pred_upper), alpha = 0.2, fill = "grey") +
+  labs(
+    title = "Regression Line with Prediction Intervals",
+    x = "Carat",
+    y = "Price (USD)"
+  )
+```
+
+
+## Assessing
+#### Split the Data into Training and Testing Sets
+```{r}
+# Split into Train and Test Sets
+set.seed(1995)
+diamond_split <- initial_split(diamond_subset, prop = 0.8)
+diamond_train <- training(diamond_split)
+diamond_test <- testing(diamond_split)
+```
+
+```{r}
+head(diamond_train)
+head(diamond_test)
+```
+
+
+#### Train Linear Regression Model on Training Data
+```{r}
+# Train the Model on Training Data
+train_model <- lm(price ~ carat, data = diamond_train)
+
+# Summary of the Model
+summary(train_model)
+```
+
+#### Evaluate Model on Test Data
+```{r}
+# Predict on Test Data
+test_predictions <- predict(train_model, newdata = diamond_test)
+
+# Combine Predictions with Actual Data
+test_results <- diamond_test %>%
+  mutate(
+    predicted_price = test_predictions,
+    residuals = price - test_predictions
+  )
+
+# View Results
+head(test_results)
+```
+
+#### Residual Analysis on Test Data
+```{r}
+# Plot Residuals vs Fitted
+ggplot(test_results, aes(x = predicted_price, y = residuals)) +
+  geom_point(alpha = 0.6, color = "blue") +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
+  labs(
+    title = "Residuals vs Fitted",
+    x = "Fitted Values",
+    y = "Residuals"
+  )
+
+# Histogram of Residuals
+ggplot(test_results, aes(x = residuals)) +
+  geom_histogram(binwidth = 500, fill = "blue", alpha = 0.6) +
+  labs(
+    title = "Distribution of Residuals",
+    x = "Residuals",
+    y = "Frequency"
+  )
+```
+
+#### Confidence Intervals for Coefficients
+```{r}
+# Confidence Intervals
+confint(train_model)
+```
+
+```{r}
+# Define a function to simplify residuals analysis
+residualAnalysis <- function(model = NULL) {
+  if (!require(gridExtra)) stop('Install the gridExtra package.')
+  if (!require(ggformula)) stop('Install the ggformula package.')
+  
+  # Create a dataframe with predictions and standardized residuals
+  df <- data.frame(
+    Prediction = predict(model),
+    Residual = rstandard(model)
+  )
+  
+  # Plot residuals vs predictions
+  p1 <- gf_point(Residual ~ Prediction, data = df) %>% 
+    gf_hline(yintercept = 0) %>% 
+    gf_labs(
+      title = "Residuals vs Predicted Values",
+      x = "Predicted Values",
+      y = "Standardized Residuals"
+    )
+  
+  # Q-Q Plot for residuals
+  p2 <- gf_qq(~Residual, data = df) %>% 
+    gf_qqline() %>% 
+    gf_labs(
+      title = "Q-Q Plot for Residuals",
+      x = "Theoretical Quantiles",
+      y = "Standardized Residuals"
+    )
+  
+  # Combine the plots in a grid
+  grid.arrange(p1, p2, ncol = 2)
+}
+
+# Apply the residual analysis function on the trained model
+residualAnalysis(lm_model)
+```
+
+
+
+
+
+

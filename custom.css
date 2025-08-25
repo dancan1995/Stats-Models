@@ -1,0 +1,67 @@
+/* Make TOC fixed to the left with dynamic sizing */
+#TOC {
+  position: fixed;
+  top: 60px; /* distance from top of screen */
+  left: 0;
+  bottom: 0;
+  width: 100%; /* Adjust as needed */
+  max-width: 600px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 10px;
+  background-color: #ccc; 
+  border-right: 1px solid lightgreen;
+  font-size: 14px;
+  z-index: 1000;
+  box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+}
+
+/* Add a heading inside the TOC */
+#TOC::before {
+  content: "Table of Contents";
+  display: block;
+  font-weight: bold;
+  font-size: 18px;
+  color: #004080;
+  padding-bottom: 10px;
+  border-bottom: 1px solid blue;
+  margin-bottom: 10px;
+}
+
+/* Ensure content next to TOC doesn’t overlap */
+body {
+  margin-left: 1%; /* 22% + some spacing */
+  padding: 20px;
+  max-width: 100%;
+}
+
+/* Word wrapping for long section titles */
+#TOC li {
+  word-wrap: break-word;
+  white-space: normal;
+}
+
+/* Make TOC links cleaner */
+#TOC a {
+  text-decoration: none;
+  color: #007bff;
+}
+
+#TOC a:hover {
+  text-decoration: underline;
+}
+
+/* Responsive: On small screens, stack TOC on top */
+@media screen and (max-width: 768px) {
+  #TOC {
+    position: relative;
+    width: 100%;
+    max-width: none;
+    border-right: none;
+    border-bottom: 1px solid #ccc;
+    background-color: #dbeeff;
+  }
+  body {
+    margin-left: 0;
+  }
+}

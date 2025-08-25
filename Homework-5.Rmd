@@ -1,0 +1,575 @@
+---
+title: "Homework-5(47/50) - The approach matches Professors and the results I got are almost the same since we had so much flexibility in this modelling task and the project seemed to change values and significant predictors a couple of time as Professor's also seemed to change by adding Year and thats a concern. The interpretation are detailed and shows the 3 concrate steps that the assignment needed"
+author: "Dancun Juma"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Import libraries
+```{r include=TRUE,warning=FALSE,message=FALSE}
+# load required libraries
+library(ISLR)
+library(tidyverse)
+library(tidymodels)
+library(boot)
+library(doMC)   
+library(broom)   
+library(purrr)   
+library(GGally)  
+library(flextable)
+```
+
+
+# Loading the dataset
+```{r}
+# load the Auto dataset
+data("Auto")
+head(Auto)
+```
+
+```{r}
+# Define variable descriptions
+auto_vars <- tibble(
+  Variable = c("mpg", "cylinders", "displacement", "horsepower", "weight", 
+               "acceleration", "year", "origin", "name"),
+  Description = c("Miles per gallon (fuel efficiency)", 
+                  "Number of engine cylinders (e.g., 4, 6, 8)", 
+                  "Engine displacement (in cubic inches)", 
+                  "Engine horsepower", 
+                  "Weight of the car (in pounds)", 
+                  "Time taken to accelerate from 0 to 60 mph (seconds)", 
+                  "Model year of the car (1970-1982)", 
+                  "Country of origin (1 = USA, 2 = Europe, 3 = Japan)", 
+                  "Name of the car model"),
+  Type = c("Numeric (Continuous)", 
+           "Numeric (Categorical-like)", 
+           "Numeric (Continuous)", 
+           "Numeric (Continuous)", 
+           "Numeric (Continuous)", 
+           "Numeric (Continuous)", 
+           "Numeric (Discrete)", 
+           "Categorical (Factor)", 
+           "Text (Character)")
+)
+
+# Create and format flextable
+auto_vars_table <- flextable(auto_vars) %>%
+  theme_vanilla() %>%  # Apply a clean table theme
+  set_table_properties(width = 1, layout = "autofit") %>% 
+  bold(part = "header") %>%
+  fontsize(size = 11, part = "all") %>%
+  autofit()
+
+# Print the table
+auto_vars_table
+```
+
+
+# Data Preparation
+```{r}
+glimpse(Auto)
+```
+
+The 
+
+```{r}
+# Select quantitative predictors and factor variable `origin`
+auto_data <- Auto %>%
+  select(acceleration, mpg, cylinders, displacement, horsepower, weight, year, origin) %>%
+  mutate(origin = factor(origin))
+```
+
+**I selected quantitative predictors (acceleration, cylinders, displacement, horsepower, weight, year) and the categorical variable (origin) from the Auto dataset which I then converted origin into a factor, ensuring it is treated correctly in modeling.**
+
+# Set a random seed for reproducibility
+```{r}
+set.seed(2025)
+
+# Split the data
+auto_split <- initial_split(auto_data, prop = 0.8)
+auto_train <- training(auto_split)
+auto_test <- testing(auto_split)
+
+# Create 5-fold cross-validation splits
+auto_folds <- vfold_cv(auto_train, v = 5)
+```
+
+**I set a random seed (2025) to ensure reproducibility of my results. Then, I split the dataset into 80% training and 20% testing using `initial_split()`. I further created 5-fold cross-validation splits on the training data using `vfold_cv()` for model evaluation.**
+
+# Exploratory Data Analysis
+```{r}
+ggpairs(auto_data)
+```
+
+**Cylinders, displacement, horsepower, and weight are strongly correlated, suggesting multicollinearity. Acceleration decreases as horsepower and weight increase, which aligns with intuition. Vehicle origin affects various characteristics, as seen in the boxplots.**
+
+# Define a Linear Regression Model
+```{r}
+linear_model <- linear_reg() %>%
+  set_mode("regression") %>%
+  set_engine("lm") %>%
+  fit(acceleration ~ mpg + cylinders + displacement + horsepower + weight + year + origin, 
+      data = auto_data)
+
+tidy(linear_model, conf.int = TRUE)
+```
+
+1. **Intercept (20.87):** Expected mpg when all predictors are zero (**highly significant, p < 0.001**).  
+2. **Cylinders (-0.154):** More cylinders slightly reduce mpg (**not significant, p = 0.356**).  
+3. **Displacement (-0.0082):** Larger engine displacement decreases mpg (**significant, p = 0.036**).  
+4. **Horsepower (-0.086):** Higher horsepower reduces mpg (**highly significant, p < 0.001**).  
+5. **Weight (0.0033):** Heavier cars slightly increase mpg (**highly significant, p < 0.001**).  
+6. **Year (-0.056):** Newer cars slightly reduce mpg (**not significant, p = 0.086**).  
+7. **mpg (0.0214):** Likely a mistake; mpg shouldn’t be both predictor and outcome (**not significant, p = 0.415**).  
+8. **Origin (-0.0045):** Country of origin has no meaningful effect (**not significant, p = 0.976**).  
+
+# Model Selection Process using Cross-Validation (Foward Selection)
+## All the models in the foward selection
+```{r}
+# Define potential predictors
+predictor_vars <- c("mpg", "cylinders", "displacement", "horsepower", "weight", "year", "origin")
+
+# Initialize results storage
+model_results <- tibble()
+
+# Define linear regression model
+linear_model <- linear_reg() %>%
+  set_mode("regression") %>%
+  set_engine("lm")
+
+# Ensure auto_folds is correctly defined
+auto_folds <- vfold_cv(auto_train, v = 5)
+
+# Iteratively test different models
+for (i in seq_along(predictor_vars)) {
+  combinations <- combn(predictor_vars, i, simplify = FALSE)
+  
+  for (comb in combinations) {
+    current_wf <- workflow() %>%
+      add_model(linear_model) %>%
+      add_formula(as.formula(paste("acceleration ~", paste(comb, collapse = " + "))))
+    
+    # Fit and evaluate using 5-fold cross-validation
+    results <- fit_resamples(
+      current_wf,
+      resamples = auto_folds,
+      metrics = metric_set(rmse, rsq)
+    )
+
+    # Use `mean` instead of `.estimate`
+    metrics_summary <- results %>%
+      collect_metrics() %>%
+      select(.metric, mean) %>%  
+      pivot_wider(names_from = .metric, values_from = mean) %>%
+      summarise(
+        mean_rmse = mean(rmse, na.rm = TRUE),
+        mean_rsq = mean(rsq, na.rm = TRUE)
+      )
+    
+    model_results <- bind_rows(model_results, tibble(
+      predictors = paste(comb, collapse = " + "),
+      mean_rmse = metrics_summary$mean_rmse,
+      mean_rsq = metrics_summary$mean_rsq
+    ))
+  }
+}
+
+# View results
+print(model_results, n = Inf)
+```
+
+**The cross-validation results show that different predictors have varying levels of predictive power. Predictors like *horsepower* and *cylinders + horsepower* have lower RMSE and higher R², indicating stronger predictive performance. In contrast, variables like *origin* and *year* have higher RMSE and lower R², making them weaker predictors. Combining multiple variables generally improves model accuracy.**
+
+# Select the Best Model
+```{r}
+best_model <- model_results %>%
+  arrange(mean_rmse) %>%
+  slice(1)
+
+final_predictors <- strsplit(best_model$predictors, " \\+ ")[[1]]
+final_formula <- as.formula(paste("acceleration ~", best_model$predictors))
+```
+
+**I arranged models by RMSE, selecting the best one. Then, I extracted its predictors and created a formula for acceleration, ensuring the final model used the most effective variables.**
+
+# Fit the Final Model
+```{r}
+final_formula <- as.formula(paste("acceleration ~", paste(final_predictors, collapse = " + ")))
+
+final_wf <- workflow() %>%
+  add_model(linear_model) %>%
+  add_formula(final_formula)
+
+final_fit <- fit(final_wf, data = auto_train)
+```
+
+**I constructed the final formula using selected predictors and built a workflow with a linear model. Then, I fitted the model to the training data, preparing it for evaluation.**
+
+# Evaluate Final Model Performance
+```{r}
+final_predictions <- predict(final_fit, auto_test) %>%
+  bind_cols(auto_test)
+
+final_metrics <- final_predictions %>%
+  metrics(truth = acceleration, estimate = .pred)
+
+final_metrics
+```
+
+
+RMSE (1.73): The model's average prediction error is around 1.73 acceleration units.
+
+R² (0.59): The model explains 59% of the variance in acceleration.
+
+MAE (1.42): The average absolute prediction error is 1.42 acceleration units.
+
+# Report Final Model Coefficients
+```{r}
+final_model <- final_fit %>%
+  extract_fit_parsnip() %>%
+  tidy()
+
+final_model
+```
+
+Intercept (16.73, p < 0.001): shows the baseline acceleration when all predictors are zero.
+
+Displacement (-0.012, p < 0.001): Higher displacement slightly decreases acceleration.
+
+Horsepower (-0.079, p < 0.001): More horsepower significantly reduces acceleration.
+
+Weight (0.003, p < 0.001): Heavier cars have slightly higher acceleration.
+
+
+$$
+\widehat{\text{acceleration}} = 16.73 - 0.012 \times \text{displacement} - 0.079 \times \text{horsepower} + 0.003 \times \text{weight}
+$$
+
+
+# Visualize Performance by Number of Predictors
+```{r warning=FALSE}
+model_results <- model_results %>%
+  mutate(num_predictors = sapply(strsplit(predictors, " \\+ "), length))
+
+ggplot(model_results, aes(x = num_predictors, y = mean_rmse)) +
+  geom_point() +
+  geom_line() +
+  labs(
+    title = "Model Performance by Number of Predictors",
+    x = "Number of Predictors",
+    y = "Mean RMSE"
+  ) +
+  theme_minimal()
+```
+
+**As the number of predictors increases, the RMSE generally decreases, indicating improved model performance. However, the variability in RMSE across models with the same number of predictors suggests that some predictor combinations perform better than others. The RMSE stabilizes after four predictors, implying that adding more predictors may not significantly improve accuracy.**
+
+
+# Visualizing Predictions vs. Actual Acceleration
+```{r}
+ggplot(final_predictions, aes(x = acceleration, y = .pred)) +
+  geom_point() +
+  geom_abline(slope = 1, intercept = 0, color = "red") +
+  labs(
+    title = "Predicted vs. Actual Acceleration",
+    x = "Actual Acceleration",
+    y = "Predicted Acceleration"
+  ) +
+  theme_minimal()
+```
+
+**The line represents an ideal 1:1 relationship, where predictions perfectly match actual values. Most points align closely with this line, indicating a reasonably accurate model. However, some deviations suggest prediction errors, possibly due to noise or model limitations. The spread of points suggests variance in accuracy, with some under- and over-predictions. While the model captures the overall trend well, improvements may be needed to reduce errors. **
+
+# Bootstrapping to Assess Coefficient Variability
+```{r}
+set.seed(931)
+
+boot_samps <- auto_train %>%
+  bootstraps(times = 2000)
+
+fit_mlr_boots <- function(split) {
+  lm(acceleration ~ mpg + cylinders + displacement + horsepower + weight + year + origin, 
+     data = analysis(split))
+}
+
+boot_models <- boot_samps %>%
+  mutate(
+    model = map(splits, fit_mlr_boots),
+    coef_info = map(model, tidy)
+  )
+
+boots_coefs <- boot_models %>%
+  unnest(coef_info)
+```
+
+
+
+# Bootstrap Confidence Intervals
+```{r}
+boot_int <- boot_models %>%
+  unnest(coef_info) %>%
+  group_by(term) %>%
+  summarize(
+    .lower = quantile(estimate, probs = 0.025),
+    .upper = quantile(estimate, probs = 0.975)
+  )
+
+boot_int
+```
+
+Intercept (14.38 to 23.96): The model’s baseline acceleration (when all predictors are zero) is positive and significant.
+
+Cylinders (-0.52 to 0.21): Since the interval includes zero, cylinders may not be a reliable predictor.
+
+Displacement (-0.022 to 0.004): The interval includes zero, indicating weak or no significant effect.
+
+Horsepower (-0.101 to -0.065): A consistently negative effect suggests higher horsepower reduces acceleration.
+
+Origin2 (-0.67 to 1.06) & Origin3 (-0.60 to 0.63): These intervals contain zero, meaning country of origin may not significantly impact acceleration.
+
+Weight (0.002 to 0.004): A consistently positive effect suggests heavier cars tend to have higher acceleration.
+
+**Horsepower and weight appear significant predictors of acceleration, while other variables may not have a strong impact based on these confidence intervals.**
+
+# Visualizing Coefficient Stability
+```{r}
+ggplot(boots_coefs, aes(x = estimate)) +
+  geom_histogram(bins = 30) +
+  facet_wrap(~ term, scales = "free") +
+  geom_vline(data = boot_int, aes(xintercept = .lower), col = "blue") +
+  geom_vline(data = boot_int, aes(xintercept = .upper), col = "blue")
+```
+
+Intercept: The distribution is centered around 19, with confidence bounds between ~14 and ~24, confirming a stable and significant intercept.
+
+Cylinders & Displacement: The intervals include zero, indicating these predictors might not significantly affect the response variable.
+
+Horsepower: The entire distribution is negative, suggesting a consistent negative effect on the response variable.
+
+Origin2 & Origin3: The confidence intervals span zero, implying country of origin might not be a strong predictor.
+
+Weight: The distribution is strictly positive, reinforcing its significance as a predictor.
+
+Year: The confidence interval includes zero, suggesting its effect may be weak or uncertain.
+
+**I would say the significant predictors are Horsepower (negative) and Weight (positive) while on the other hand uncertain predictors include Cylinders, Displacement, Year, and Origin variables.**
+
+# MY SECOND VERSION
+# Leave-One-Out Cross Validation (LOOCV)
+
+```{r}
+data(Auto)
+Auto <- na.omit(Auto)
+
+# Select relevant predictors & convert categorical variables
+auto_data <- Auto %>%
+  select(acceleration, mpg, cylinders, displacement, horsepower, weight, year, origin) %>%
+  mutate(origin = factor(origin))  # Convert origin to categorical
+
+# Define linear regression model
+lr_model <- linear_reg() %>%
+  set_mode("regression") %>%
+  set_engine("lm")
+
+# Manually perform LOOCV using cv.glm() from boot package
+glm.fit <- glm(acceleration ~ ., data = auto_data)
+cv.err <- cv.glm(auto_data, glm.fit)
+
+# Display LOOCV error estimate
+cv.err$delta  # First value is raw LOOCV error, second is bias-corrected
+```
+
+**Since the bias-corrected and raw estimates are nearly identical, the model is stable and well-fitted to the data.**
+
+# Using tidymodels
+
+## Try LOOCV with tidy models.
+
+```{r}
+# Define 5-fold cross-validation resampling
+glm.folds <- vfold_cv(auto_data, v = 5)
+
+# Define workflow for k-fold CV
+lm_wf <- 
+  workflow() %>%
+  add_model(lr_model) %>%
+  add_formula(acceleration ~ .)
+
+# Perform 5-fold cross-validation
+lm_fit_rs <- 
+  lm_wf %>%
+  fit_resamples(
+    resamples = glm.folds,
+    control = control_resamples(extract = extract_fit_engine, save_pred = TRUE)
+  )
+
+# Collect and display metrics
+collect_metrics(lm_fit_rs)
+```
+
+**I have obreved that the Root Mean Squared Error (RMSE) is 1.74, meaning that, on average, the model's predictions deviate from the actual acceleration values by approximately 1.74 acceleration units. The standard error (0.0799) indicates the variability in RMSE across different folds, showing that the model performs consistently across the validation sets.**
+
+**On the other hand , the R² is 0.598, meaning that the model explains about 59.77% of the variance in acceleration. While this suggests a moderate fit, there is still room for improvement in predictive accuracy. The standard error for R² (0.0443) is relatively small, indicating that the model's explanatory power is stable across folds.**
+
+```{r}
+# Define 5-fold cross-validation resampling
+glm.folds <- vfold_cv(auto_data, v = 5)
+glm.folds
+```
+
+**I did only 5 folds**
+
+```{r}
+# Define linear regression model
+lr_model <- linear_reg() %>%
+  set_mode("regression") %>%
+  set_engine("lm")
+
+# Define workflow for k-fold CV
+lm_wf <- 
+  workflow() %>%
+  add_model(lr_model) %>%
+  add_formula(acceleration ~ .)
+
+# Perform 5-fold cross-validation
+lm_fit_rs <- 
+  lm_wf %>%
+  fit_resamples(
+    resamples = glm.folds,
+    control = control_resamples(extract = extract_fit_engine, save_pred = TRUE)
+  )
+
+# Collect and display metrics
+collect_metrics(lm_fit_rs)
+```
+
+**The 5-fold cross-validation results assess the model’s predictive performance for acceleration. The Root Mean Squared Error (RMSE) is 1.78, meaning the model’s predictions deviate from actual acceleration values by approximately 1.78 units on average. The standard error of 0.11 suggests stable performance across validation folds.**
+
+**The R-squared (R²) value is 0.60, indicating that the model explains 60% of the variance in acceleration. The relatively low standard error (0.0475) implies consistency in model performance.**
+
+
+```{r}
+# Enable parallel processing
+detectCores()
+registerDoMC(cores = 6)
+
+# Perform 10-fold CV with parallelization
+lm_fit_rs <- 
+  lm_wf %>%
+  fit_resamples(
+    resamples = glm.folds,
+    control = control_resamples(extract = extract_fit_engine, save_pred = TRUE)
+  )
+
+# Display results
+lm_fit_rs  
+```
+
+
+
+```{r}
+# Collect cross-validation metrics
+metrics_summary <- collect_metrics(lm_fit_rs)
+metrics_summary
+```
+**I already explained this above**
+
+```{r}
+# Collect predictions from cross-validation folds
+assess_res <- collect_predictions(lm_fit_rs)
+assess_res
+```
+
+**The .pred column represents the predicted acceleration, while the acceleration column contains the actual values. The differences between these values indicate prediction errors for each observation.**
+
+**Taking for example, in Fold01, the model predicted 14.03 for an actual acceleration of 12.0, slightly overestimating. Similarly, it predicted 7.73 for an actual 9.0, underestimating. While some predictions are close, variations exist.**
+
+```{r}
+# Visualization of predictions vs actual values
+ggplot(assess_res, aes(x = acceleration, y = .pred)) +
+  geom_point(alpha = 0.5, color = "blue") +
+  geom_abline(slope = 1, intercept = 0, color = "red") +
+  labs(title = "Actual vs. Predicted Acceleration",
+       x = "Actual Acceleration",
+       y = "Predicted Acceleration") +
+  theme_minimal()
+```
+ 
+**Most points cluster along the line, suggesting good model performance. However, some deviation is noticeable, especially at higher values, indicating potential bias or variance issues hence I might need to do further refinement.**
+
+```{r}
+# Extract model coefficients from cross-validation
+model_coefs <- lm_fit_rs %>%
+  select(id, .extracts) %>%
+  unnest(cols = .extracts) %>%
+  mutate(coefs = map(.extracts, tidy)) %>%
+  unnest(coefs) 
+
+# Display model coefficients
+model_coefs
+```
+
+**Taking for example the first few rows, the linear regression model results across different cross-validation folds show that cylinders, displacement, horsepower, and year have negative coefficients, indicating an inverse relationship with acceleration. On the other hand, weight, origin2, and origin3 have positive effects. The intercept remains around 20.6–20.9, suggesting a baseline acceleration. The variation across folds is observed to be minimal, implying a stable model fit.**
+
+## Consistency in the coefficients and performance
+A consistentency in the coefficients and performance across folds can be observed.
+
+```{r}
+# Plot coefficients and confidence intervals across CV folds
+model_coefs %>%
+  filter(term != "(Intercept)") %>%
+  select(id, term, estimate, std.error) %>%
+  group_by(term) %>%
+  mutate(avg_estimate = mean(estimate)) %>%
+  ggplot(aes(x = id, y = estimate)) +
+  geom_hline(aes(yintercept = avg_estimate), size = 1.2, linetype = "dashed") +
+  geom_point(size = 4, color = "blue") +
+  geom_errorbar(aes(ymin = estimate - 2*std.error, ymax = estimate + 2*std.error),
+                width = 0.1, size = 1.2, color = "black") +
+  facet_wrap(~term, scales = "free_y") +
+  labs(x = "CV Folds",
+       y = "Estimate ± 95% CI",
+       title = "Regression Coefficients ± 95% CI for 5-fold CV",
+       subtitle = "Dashed Line = Average Coefficient Estimate over 5 CV Folds") +
+  theme_classic()
+```
+
+**Variables like cylinders and origin2 exhibit high variability, with confidence intervals spanning both positive and negative values, indicating instability or weak predictive power. In contrast, horsepower and displacement have consistently negative coefficients, suggesting a stable negative relationship with the outcome. Weight shows a small but positive effect with narrow confidence intervals, indicating reliable predictive strength. Similarly, year consistently trends negative, implying a decreasing effect over time. However, origin3 has wide confidence intervals, reflecting uncertainty in its impact, potentially requiring further investigation.**
+
+# Report Final Model
+```{r}
+final_model <- final_fit %>%
+  extract_fit_parsnip() %>%
+  tidy()
+
+final_model
+```
+
+Intercept (16.73, p < 0.001): shows the baseline acceleration when all predictors are zero.
+
+Displacement (-0.012, p < 0.001): Higher displacement slightly decreases acceleration.
+
+Horsepower (-0.079, p < 0.001): More horsepower significantly reduces acceleration.
+
+Weight (0.003, p < 0.001): Heavier cars have slightly higher acceleration.
+
+
+$$
+\widehat{\text{acceleration}} = 16.73 - 0.012 \times \text{displacement} - 0.079 \times \text{horsepower} + 0.003 \times \text{weight}
+$$
+
+# Answers to our objectives 
+## Significant Predictors
+
+The regression results indicate that cylinders, displacement, and horsepower have negative coefficients, suggesting a decrease in acceleration as these values increase. The variables `displacement`, `horsepower` and `weight`appear to be the most significant predictors based on their estimates.
+
+## Model Performance
+
+The predicted vs. actual acceleration plot shows a strong positive correlation, indicating a well-fitted model. However, some dispersion around the regression line suggests moderate prediction error, which could be improved with additional predictors or a more complex model.
+
+
+In conclusion, a consistency in the coefficients and performance across folds can be observed.

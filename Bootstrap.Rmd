@@ -1,0 +1,159 @@
+---
+title: "Bootstrap"
+author: "Dancun Juma"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+# Task 1: Done
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Task 2: Load the necessary packages
+```{r include=TRUE}
+library(tidyverse)
+library(tidymodels)
+library(GGally)
+```
+
+# Task 3: Creating the Data
+
+```{r}
+# Set a random seed value so we can obtain the same "random" results
+set.seed(2025)
+
+n <- 20
+
+# Create a data frame/tibble named sim_dat
+sim_dat <- tibble(
+  # Explain what next line is doing
+  x1 = runif(20, -5, 5),
+  # Explain what next line is doing
+  x2 = runif(20, 0, 100),
+  # Explain what next line is doing
+  x3 = rbinom(20, 1, 0.5)
+  )
+
+b0 <- 2
+b1 <- 0.25
+b2 <- -0.5
+b3 <- 1
+sigma <- 1.5
+
+errors <- rnorm(20, 0, sigma)
+
+sim_dat <- sim_dat %>%
+  mutate(
+    y = b0 + b1*x1 + b2*x2 + b3*x3 + errors,
+    x3 = case_when(
+      x3 == 0 ~ "No",
+      TRUE ~ "Yes"
+      )
+    )
+```
+
+
+```{r}
+ggpairs(sim_dat)
+```
+
+
+# Task 4: Traditional MLR Model
+
+```{r}
+mlr_fit <- linear_reg() %>%
+  set_mode("regression") %>%
+  set_engine("lm") %>%
+  fit(y ~ x1 + x2 + x3, data = sim_dat)
+
+tidy(mlr_fit, conf.int = TRUE)
+```
+
+# Task 5: Bootstrapping
+
+```{r}
+# Set a random seed value so we can obtain the same "random" results
+set.seed(631)
+
+# Generate the 2000 bootstrap samples
+boot_samps <- sim_dat %>%
+  bootstraps(times = 2000)
+
+boot_samps
+```
+
+```{r}
+# Create a function that fits a fixed MLR model to one split dataset
+fit_mlr_boots <- function(split) {
+  lm(y ~ x1 + x2 + x3, data = analysis(split))
+}
+
+# Fit the model to each split and store the information
+boot_models <- boot_samps %>%
+  mutate(
+    model = map(splits, fit_mlr_boots),
+    coef_info = map(model, tidy)
+  )
+
+boots_coefs <- boot_models %>%
+  unnest(coef_info)
+
+boots_coefs
+```
+
+## Bootstrap Confidence Intervals
+
+```{r}
+boot_int <- int_pctl(boot_models, statistics = coef_info, alpha = 0.05)
+boot_int
+```
+
+## Visualization
+```{r}
+ggplot(boots_coefs, aes(x = estimate)) +
+  geom_histogram(bins = 30) +
+  facet_wrap( ~ term, scales = "free") +
+  geom_vline(data = boot_int, aes(xintercept = .lower), col = "blue") +
+  geom_vline(data = boot_int, aes(xintercept = .upper), col = "blue")
+```
+
+
+
+
+```{r warning=FALSE}
+ggplot(boots_coefs, aes(x = estimate, fill = term)) +
+  geom_histogram(bins = 30, alpha = 0.6, color = "black") +
+  facet_wrap(~ term, scales = "free") +
+  geom_vline(data = boot_int, aes(xintercept = .lower), col = "blue", linetype = "dashed") +
+  geom_vline(data = boot_int, aes(xintercept = .upper), col = "blue", linetype = "dashed") +
+  geom_vline(xintercept = c(1.5626060, 0.4336503, -0.4905565, 1.0117182), col = "orange", linetype = "solid", size = 1) +
+  geom_vline(xintercept = c(2, 0.25, -0.5, 1), col = "blue", linetype = "solid", size = 1) +
+  theme_minimal() +
+  labs(title = "Bootstrap Estimates vs Population and Traditional Confidence Intervals",
+       x = "Coefficient Estimate",
+       y = "Count")
+```
+
+# Answer to Question 5
+
+The bootstrap estimates align closely with the population-level model coefficients. The traditional confidence intervals (orange lines) provide a reference, while the bootstrap intervals (blue dashed lines) capture the variability from resampling. 
+
+## Accuracy Assessment:
+- The bootstrap confidence intervals contain the true population values for most estimates, indicating reasonable accuracy.
+- The traditional method’s confidence intervals are slightly narrower than the bootstrap intervals, reflecting the differences in estimation methods.
+- The variability of bootstrap estimates is evident, but their central tendency aligns well with the expected population coefficients.
+
+This suggests that bootstrapping provides a robust alternative to traditional inference methods, especially when assumptions about normality or small sample sizes need to be considered.
+
+## Challenge Enhancements
+- Added vertical orange lines for traditional confidence intervals.
+- Added vertical solid blue lines for population slope values.
+- Applied `theme_minimal()` for a cleaner plot appearance.
+- Added histogram colors and adjusted transparency for better visibility.
+- Included clear axis labels and a title to improve interpretability.
+
+
+
+

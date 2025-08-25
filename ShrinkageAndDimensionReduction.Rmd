@@ -1,0 +1,254 @@
+---
+title: "Tidy Models Shrinkage"
+output: html_notebook
+---
+
+```{r Setup}
+library(tidyverse)
+library(tidymodels)
+library(ISLR2)
+Hitters <- na.omit(Hitters)
+```
+
+[Source](https://emilhvitfeldt.github.io/ISLR-tidymodels-labs/06-regularization.html)
+
+# Ridge regression
+```{r}
+ridge_spec <- linear_reg(mixture = 0, penalty = 0) %>%
+  set_mode("regression") %>%
+  set_engine("glmnet")
+```
+
+```{r}
+ridge_fit <- fit(ridge_spec, Salary ~ ., data = Hitters)
+tidy(ridge_fit)
+```
+
+```{r}
+tidy(ridge_fit, penalty = 11498)
+```
+
+  
+```{r}
+tidy(ridge_fit, penalty = 705)
+```
+ 
+  
+```{r}
+tidy(ridge_fit, penalty = 50)
+```
+
+```{r}
+  ridge_fit %>%
+  autoplot()
+```
+  
+  
+```{r}
+predict(ridge_fit, new_data = Hitters)
+```
+  
+```{r}
+predict(ridge_fit, new_data = Hitters, penalty = 500)
+```
+  
+  
+```{r}
+Hitters_split <- initial_split(Hitters, strata = "Salary")
+
+Hitters_train <- training(Hitters_split)
+Hitters_test <- testing(Hitters_split)
+
+Hitters_fold <- vfold_cv(Hitters_train, v = 10)
+```
+
+```{r}
+ridge_recipe <- 
+  recipe(formula = Salary ~ ., data = Hitters_train) %>% 
+  step_novel(all_nominal_predictors()) %>%  # add 'new' level to factors and chr -> fctr
+  step_dummy(all_nominal_predictors()) %>%  # factors to dummy variables
+  step_zv(all_predictors()) %>%             # remove zero variance predictors
+  step_normalize(all_predictors())          # normalize all predictors
+  
+  ridge_spec <- 
+  linear_reg(penalty = tune(), mixture = 0) %>% 
+  set_mode("regression") %>% 
+  set_engine("glmnet")
+  
+  ridge_workflow <- workflow() %>% 
+  add_recipe(ridge_recipe) %>% 
+  add_model(ridge_spec)
+  
+  penalty_grid <- grid_regular(penalty(range = c(-5, 5)), levels = 50)
+penalty_grid
+
+```
+
+```{r}
+tune_res <- tune_grid(
+  ridge_workflow,
+  resamples = Hitters_fold, 
+  grid = penalty_grid
+)
+
+tune_res
+
+```
+
+```{r}
+autoplot(tune_res)
+```
+
+
+```{r}
+collect_metrics(tune_res)
+```
+
+```{r}
+best_penalty <- select_best(tune_res, metric = "rsq")
+best_penalty
+```
+
+```{r}
+ridge_final <- finalize_workflow(ridge_workflow, best_penalty)
+```
+
+
+```{r}
+ridge_final_fit <- fit(ridge_final, data = Hitters_train)
+```
+
+```{r}
+augment(ridge_final_fit, new_data = Hitters_test) %>%
+  rsq(truth = Salary, estimate = .pred)
+```
+
+  
+# The Lasso
+
+```{r}
+lasso_recipe <- 
+  recipe(formula = Salary ~ ., data = Hitters_train) %>% 
+  step_novel(all_nominal_predictors()) %>% 
+  step_dummy(all_nominal_predictors()) %>% 
+  step_zv(all_predictors()) %>% 
+  step_normalize(all_predictors())
+  
+  lasso_spec <- 
+  linear_reg(penalty = tune(), mixture = 1) %>% 
+  set_mode("regression") %>% 
+  set_engine("glmnet") 
+
+lasso_workflow <- workflow() %>% 
+  add_recipe(lasso_recipe) %>% 
+  add_model(lasso_spec)
+  
+  penalty_grid <- grid_regular(penalty(range = c(-2, 2)), levels = 50)
+  
+  tune_res <- tune_grid(
+  lasso_workflow,
+  resamples = Hitters_fold, 
+  grid = penalty_grid
+)
+
+autoplot(tune_res)
+```
+
+```{r}
+best_penalty <- select_best(tune_res, metric = "rsq")
+lasso_final <- finalize_workflow(lasso_workflow, best_penalty)
+lasso_final_fit <- fit(lasso_final, data = Hitters_train)
+augment(lasso_final_fit, new_data = Hitters_test) %>%
+  rsq(truth = Salary, estimate = .pred)
+```
+  
+# Principal components regression
+
+```{r}
+lm_spec <- 
+  linear_reg() %>% 
+  set_mode("regression") %>% 
+  set_engine("lm")
+  
+pca_recipe <- 
+  recipe(formula = Salary ~ ., data = Hitters_train) %>% 
+  step_novel(all_nominal_predictors()) %>% 
+  step_dummy(all_nominal_predictors()) %>% 
+  step_zv(all_predictors()) %>% 
+  step_normalize(all_predictors()) %>%
+  step_pca(all_predictors(), threshold = tune())
+
+pca_workflow <- 
+  workflow() %>% 
+  add_recipe(pca_recipe) %>% 
+  add_model(lm_spec)
+  
+  threshold_grid <- grid_regular(threshold(), levels = 10)
+threshold_grid
+```
+
+```{r}
+tune_res <- tune_grid(
+  pca_workflow,
+  resamples = Hitters_fold, 
+  grid = threshold_grid
+)
+
+autoplot(tune_res)
+```
+
+```{r}
+best_threshold <- select_best(tune_res, metric = "rmse")
+pca_final <- finalize_workflow(pca_workflow, best_threshold)
+pca_final_fit <- fit(pca_final, data = Hitters_train)
+augment(pca_final_fit, new_data = Hitters_test) %>%
+  rsq(truth = Salary, estimate = .pred)
+```
+
+# Partial least squares
+
+Partial least squares in Tidy Models requires the package 'mixOmics' which is only available with Bioconductor which is a huge installaition. 
+```
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+BiocManager::install("mixOmics")
+```
+
+```{r}
+pls_recipe <- 
+  recipe(formula = Salary ~ ., data = Hitters_train) %>% 
+  step_novel(all_nominal_predictors()) %>% 
+  step_dummy(all_nominal_predictors()) %>% 
+  step_zv(all_predictors()) %>% 
+  step_normalize(all_predictors()) %>%
+  step_pls(all_predictors(), num_comp = tune(), outcome = "Salary")
+
+lm_spec <- linear_reg() %>% 
+  set_mode("regression") %>% 
+  set_engine("lm") 
+
+pls_workflow <- workflow() %>% 
+  add_recipe(pls_recipe) %>% 
+  add_model(lm_spec) 
+
+num_comp_grid <- grid_regular(num_comp(c(1, 20)), levels = 10)
+
+tune_res <- tune_grid(
+  pls_workflow,
+  resamples = Hitters_fold, 
+  grid = num_comp_grid
+)
+
+best_threshold <- select_best(tune_res, metric = "rmse")
+
+pls_final <- finalize_workflow(pls_workflow, best_threshold)
+
+pls_final_fit <- fit(pls_final, data = Hitters_train)
+
+augment(pca_final_fit, new_data = Hitters_test) %>%
+  rsq(truth = Salary, estimate = .pred)
+
+```
+
+rsq	= 0.5748281		

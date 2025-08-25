@@ -1,0 +1,212 @@
+---
+title: "LDA_Activity"
+author: "Dancun Juma"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Task 2: Load the necessary packages
+```{r message=FALSE,include=FALSE,warning=FALSE}
+library(tidyverse)
+library(tidymodels)
+library(readr)
+library(ggformula)
+library(broom)
+library(nnet)
+library(GGally)
+```
+
+# Task 3: Load the data
+```{r resume-import}
+# Read the CSV file from the 'data' folder
+resume <- read_csv("resume.csv")
+
+# View the first few rows of the data
+head(resume)
+```
+
+```{r}
+# Plot for years_experience
+ggplot(resume, aes(x = years_experience, fill = received_callback)) +
+  geom_density(alpha = 0.5) +
+  labs(title = "Density Plot of Years of Experience",
+       x = "Years of Experience",
+       y = "Density",
+       fill = "Received Callback") +
+  theme_minimal()
+
+# Plot for log(years_experience)
+ggplot(resume, aes(x = log(years_experience), fill = received_callback)) +
+  geom_density(alpha = 0.5) +
+  labs(title = "Density Plot of Log(Years of Experience)",
+       x = "Log(Years of Experience)",
+       y = "Density",
+       fill = "Received Callback") +
+  theme_minimal()
+```
+
+
+# Task 4: LDA
+```{r}
+# Convert received_callback to a factor with more informative labels
+resume <- resume %>%
+  mutate(received_callback = factor(received_callback, labels = c("No", "Yes")))
+
+# LDA
+library(discrim)
+lda_years <- discrim_linear() %>%
+  set_mode("classification") %>%
+  set_engine("MASS") %>%
+  fit(received_callback ~ log(years_experience), data = resume)
+
+lda_years
+```
+
+Now, answer the following questions:
+
+Looking at the Group means: portion of the above output, you have the mean of log(years_experience) for whether a résumé received a call back.
+2. What do you notice about these two values?
+
+**The group means indicate that candidates who received a callback have slightly higher log(years_experience) (1.999) than those who didn’t (1.867). This suggests that more experience slightly increases callback chances, though the difference is small, implying other factors may play a significant role in employer decisions.**
+
+
+3. How does this correspond to the appropriate density plot above? That is, what feature of these curves are you comparing
+
+**In the density plot, the “Yes” group’s curve likely shifts slightly right, meaning higher log(years_experience) correlates with more callbacks. Comparing the peaks and spread reveals how distinct the groups are. Significant overlap suggests experience alone isn't a strong predictor, while separation indicates experience plays a crucial role in callbacks.**
+
+
+# Task 5: Predictions
+Predictions for LDA are done similarly to how we did them for logistic and multinomial regression.
+• Create a new R code chunk and type the following, then run your code chunk or knit your document.
+```{r}
+predict(lda_years, new_data = resume, type = "prob")
+```
+
+
+This output gives us the likelihood for a particular résumé to be in the “No” or “Yes” callback group. However, looking at this is rather overwhelming (over 4,000 observations!) so we will now create a confusion matrix to look at the performance of our model.
+
+• Create a new R code chunk and type the following, then run your code chunk or knit your document. 
+```{r}
+augment(lda_years, new_data = resume) %>% 
+  conf_mat(truth = received_callback, estimate = .pred_class)
+```
+
+
+4. What do you notice? Why do you think this happened? 
+We can also look at the overall accuracy of our model (i.e., how often did it correctly predict the actual
+outcome).
+• Create a new R code chunk and type the following, then run your code chunk or knit your document.
+```{r}
+augment(lda_years, new_data = resume) %>%
+  accuracy(truth = received_callback, estimate = .pred_class)
+```
+
+So the model was right about 92% of the time. . . because it never predicted that someone would receive a
+callback. Note that this 92% corresponds to the “No” rate in the response variable
+
+# Challenge: Compare with logistic regression
+
+```{r resume-import}
+# Read the CSV file from the 'data' folder
+resume1 <- read_csv("resume.csv")
+
+# View the first few rows of the data
+head(resume1)
+```
+
+
+Recall that you can use `dplyr::glimpse` to see some meta information about the R data frame.
+```{r}
+glimpse(resume1)
+```
+
+
+
+```{r}
+ggplot(resume1, aes(x = factor(received_callback))) +
+  geom_bar(fill = "steelblue", color = "black") +
+  labs(
+    title = "Number of People Who Received a Callback",
+    x = "Received Callback (0 = No, 1 = Yes)",
+    y = "Count",
+    caption = "Source: OpenIntro's"
+  ) +
+  scale_x_discrete(labels = c("No", "Yes"))
+```
+
+
+4. Below, I provide you with a numerical summary table that should reiterate (i.e., provides numerical values) your plot in (3).
+  First, look at each line of code and describe what I am doing.
+  Then, replace "verbatim" with "r" before the code chunk title to produce this table.
+  
+```{r callback_frequency_table}
+resume1 %>% 
+  mutate(received_callback = case_when(
+    received_callback == 0 ~ "No",
+    received_callback == 1 ~ "Yes"
+  )) %>% 
+  count(received_callback) %>% 
+  mutate(percent = round(n / sum(n) * 100, 2)) %>% 
+  knitr::kable()
+```
+
+
+## Logistic regression
+
+```{r crosstable}
+resume1 %>% 
+  mutate(received_callback = case_when(
+    received_callback == 0 ~ "No",
+    received_callback == 1 ~ "Yes"
+  ),
+  race = case_when(
+    race == "black" ~ "Black",
+    race == "white" ~ "White"
+  )) %>% 
+  group_by(race, received_callback) %>% 
+  summarise(n = n()) %>% 
+  mutate(percent = round(n / sum(n) * 100, 2),
+         percent_n = glue::glue("{percent} ({n})")) %>% 
+  select(received_callback, race, percent_n) %>% 
+  pivot_wider(
+    names_from = race,
+    values_from = percent_n
+  ) %>% 
+  knitr::kable()
+```
+
+
+  
+```{r logistic-resume-model}
+# The {tidymodels} method for logistic regression requires that the response be a factor variable
+resume1 <- resume1 %>% 
+  mutate(received_callback = as.factor(received_callback))
+
+logistic_spec <- logistic_reg() %>%
+  set_engine("glm")
+
+logistic_spec
+
+resume_mod <- logistic_spec %>%
+  fit(received_callback ~ race, data = resume1, family = "binomial")
+
+tidy(resume_mod) %>% 
+  knitr::kable(digits = 3)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
